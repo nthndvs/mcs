@@ -25,8 +25,11 @@ layout, and safety behavior is identical. Only the desktop app was rewritten.
   the synthesis always leads the report, and the PDF is real, selectable text
   (rendered through the print system, not rasterized images).
 - **Artifacts** — turn Safe mode off and ask the models to create something
-  ("save your analysis as report.pdf"); files the CLIs write into the shared
-  workspace appear in the sidebar's Artifacts list, one click to open.
+  ("save your analysis as report.pdf"); each model writes into its own
+  subfolder of the shared workspace (`Workspace/<provider>/`), and the files
+  appear in the sidebar's Artifacts list labeled by model, one click to open.
+  Terminal runs keep their artifacts beside that run's results instead
+  (`results/<timestamp>/artifacts/<provider>/`).
 - **Saved chats as a first-class list** — click to resume, right-click to
   reveal in Finder or move to Trash. The 30 newest conversations are kept.
 - **Collapsible activity log** that stays out of the way until you want it.

@@ -220,6 +220,16 @@ struct SavedChat: Identifiable, Equatable {
     var id: String { folder.path }
 }
 
+/// A file created by a model during a run. `provider` is the display name of
+/// the model whose working folder contains the file, or nil for files written
+/// at the workspace root (including legacy artifacts from earlier versions).
+struct ArtifactItem: Identifiable, Equatable {
+    let url: URL
+    let provider: String?
+
+    var id: String { url.path }
+}
+
 /// Content presented in the full-window reader overlay.
 struct ReaderContent: Identifiable, Equatable {
     let title: String

@@ -169,12 +169,12 @@ struct SidebarView: View {
                 .card()
             } else {
                 VStack(spacing: 6) {
-                    ForEach(state.artifacts.prefix(12), id: \.path) { url in
-                        ArtifactRowView(url: url)
-                            .onTapGesture { state.openArtifact(url) }
+                    ForEach(state.artifacts.prefix(12)) { item in
+                        ArtifactRowView(item: item)
+                            .onTapGesture { state.openArtifact(item.url) }
                             .contextMenu {
-                                Button("Open") { state.openArtifact(url) }
-                                Button("Reveal in Finder") { state.revealArtifact(url) }
+                                Button("Open") { state.openArtifact(item.url) }
+                                Button("Reveal in Finder") { state.revealArtifact(item.url) }
                             }
                     }
                 }
@@ -436,17 +436,25 @@ struct CustomPresetButton: View {
 
 /// A file created by a model in the shared workspace.
 struct ArtifactRowView: View {
-    let url: URL
+    let item: ArtifactItem
 
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: iconName)
                 .foregroundStyle(Color.accentColor)
                 .frame(width: 16)
-            Text(url.lastPathComponent)
-                .font(.caption)
-                .lineLimit(1)
-                .truncationMode(.middle)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(item.url.lastPathComponent)
+                    .font(.caption)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                if let provider = item.provider {
+                    Text(provider)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
             Spacer()
             Image(systemName: "arrow.up.forward.square")
                 .font(.caption2)
@@ -460,11 +468,11 @@ struct ArtifactRowView: View {
                 .strokeBorder(Color(nsColor: .separatorColor).opacity(0.4), lineWidth: 0.5)
         )
         .contentShape(Rectangle())
-        .help(url.path)
+        .help(item.url.path)
     }
 
     private var iconName: String {
-        switch url.pathExtension.lowercased() {
+        switch item.url.pathExtension.lowercased() {
         case "pdf": return "doc.richtext"
         case "png", "jpg", "jpeg", "gif", "webp", "svg": return "photo"
         case "md", "txt": return "doc.text"

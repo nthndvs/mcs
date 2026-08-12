@@ -50,7 +50,7 @@ final class AppState: ObservableObject {
     @Published var activeChatFolder: URL?
     @Published var reader: ReaderContent?
     @Published var pdfExport: PDFExportState?
-    @Published var artifacts: [URL] = []
+    @Published var artifacts: [ArtifactItem] = []
     /// User-saved quick-select groupings, keyed by slot (1 and 2).
     @Published private(set) var customPresets: [Int: ProviderPreset] = [:]
 
@@ -476,6 +476,9 @@ final class AppState: ObservableObject {
             environment["DEEPSEEK_API_KEY"] = deepSeekKey
         }
         environment["MODEL_COMPARE_RESULTS_DIR"] = LauncherService.results.path
+        // Each provider CLI runs inside its own subfolder of this root, so
+        // files the models create stay separated by model (see ask-all.zsh).
+        environment["MODEL_COMPARE_WORKSPACE_ROOT"] = LauncherService.workDirectory.path
 
         let child = Process()
         let pipe = Pipe()
@@ -880,19 +883,47 @@ final class AppState: ObservableObject {
 
     /// Files created in the shared workspace folder. With Safe mode off, the
     /// coding CLIs can write reports, PDFs, and other files here during a run.
+    /// Each provider works inside its own subfolder; files at the workspace
+    /// root (including artifacts from earlier versions) are shown without a
+    /// provider label.
     func refreshArtifacts() {
-        let urls = (try? FileManager.default.contentsOfDirectory(
-            at: LauncherService.workDirectory,
-            includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey],
+        let fileManager = FileManager.default
+        let keys: [URLResourceKey] = [.contentModificationDateKey, .isRegularFileKey, .isDirectoryKey]
+        let root = LauncherService.workDirectory
+
+        func isRegularFile(_ url: URL) -> Bool {
+            (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+        }
+        func modificationDate(_ url: URL) -> Date {
+            (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+        }
+        func providerName(for folder: URL) -> String {
+            let key = folder.lastPathComponent.lowercased()
+            if key == "summary" { return "Synthesis" }
+            return ProviderID(rawValue: key)?.displayName ?? folder.lastPathComponent
+        }
+
+        var items: [ArtifactItem] = []
+        let topLevel = (try? fileManager.contentsOfDirectory(
+            at: root,
+            includingPropertiesForKeys: keys,
             options: [.skipsHiddenFiles]
         )) ?? []
-        artifacts = urls
-            .filter { (try? $0.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true }
-            .sorted {
-                let lhs = (try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-                let rhs = (try? $1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-                return lhs > rhs
+        for url in topLevel {
+            if isRegularFile(url) {
+                items.append(ArtifactItem(url: url, provider: nil))
+            } else if (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true {
+                let contents = (try? fileManager.contentsOfDirectory(
+                    at: url,
+                    includingPropertiesForKeys: keys,
+                    options: [.skipsHiddenFiles]
+                )) ?? []
+                for file in contents where isRegularFile(file) {
+                    items.append(ArtifactItem(url: file, provider: providerName(for: url)))
+                }
             }
+        }
+        artifacts = items.sorted { modificationDate($0.url) > modificationDate($1.url) }
     }
 
     func openArtifact(_ url: URL) {

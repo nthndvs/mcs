@@ -326,6 +326,16 @@ response_ready() {
   print -r -- "RESPONSE_READY:${key}:${results_dir}/${key}.txt"
 }
 
+# Per-provider working directories keep files created by coding CLIs
+# (reports, PDFs, charts) separated by model. The desktop app supplies a
+# persistent root; terminal runs keep artifacts beside that run's results.
+artifact_root=${MODEL_COMPARE_WORKSPACE_ROOT:-"$results_dir/artifacts"}
+provider_workdir() {
+  local key=$1
+  local dir="$artifact_root/$key"
+  mkdir -p "$dir" 2>/dev/null && print -r -- "$dir"
+}
+
 # A per-provider marker is a small, local control channel from the desktop
 # app. It lets a person exclude a slow answer without terminating the entire
 # comparison or losing the responses that are already complete.
@@ -370,7 +380,11 @@ run_cancellable_command() {
   local response_path=$2
   local diagnostics_path=$3
   shift 3
-  "$@" >"$response_path" 2>"$diagnostics_path" &
+  (
+    wd=$(provider_workdir "$key")
+    if [[ -n $wd ]]; then cd "$wd" 2>/dev/null || true; fi
+    exec "$@"
+  ) >"$response_path" 2>"$diagnostics_path" &
   local command_pid=$!
   print -r -- "$command_pid" >"$results_dir/.${key}.command-pid"
 
@@ -629,7 +643,11 @@ run_summary() {
     while (( attempt <= max_attempts )); do
       attempt_response="$results_dir/$key.attempt$attempt.txt"
       attempt_diagnostics="$results_dir/$key.attempt$attempt.stderr"
-      "$@" >"$attempt_response" 2>"$attempt_diagnostics"
+      (
+        wd=$(provider_workdir "$key")
+        if [[ -n $wd ]]; then cd "$wd" 2>/dev/null || true; fi
+        exec "$@"
+      ) >"$attempt_response" 2>"$attempt_diagnostics"
       command_status=$?
       # A completed response can legitimately contain links and discussion of
       # HTTP errors. Only retry when the provider process itself failed and the
