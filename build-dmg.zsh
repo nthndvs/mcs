@@ -10,7 +10,9 @@ setopt err_return no_unset pipe_fail
 root=${0:A:h}
 app="$root/Model Compare Studio.app"
 dist="$root/dist"
-version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")
+# Read the version from the source plist: on a clean CI checkout the .app
+# bundle does not exist until build-app.zsh runs below.
+version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$root/Info.plist")
 output="$dist/Model-Compare-Studio-${version}.dmg"
 
 "$root/build-app.zsh"
