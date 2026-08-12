@@ -92,6 +92,20 @@ From this folder on an Apple Silicon Mac:
 Requires only the Xcode Command Line Tools (`xcrun swiftc`); there is no Xcode
 project to keep in sync.
 
+## Releasing
+
+Releases build on GitHub Actions. Tag a version and push:
+
+```zsh
+git tag v1.0.2 && git push origin main v1.0.2
+```
+
+The `Release DMG` workflow stamps the app version from the tag, builds the
+DMG on a macOS runner, and publishes a GitHub Release with the DMG and its
+SHA-256 attached. (Push the branch and tag in one command or the tag event
+may not fire; you can also trigger the workflow manually from the Actions
+tab with a tag input.)
+
 ## Layout
 
 ```
