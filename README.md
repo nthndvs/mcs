@@ -9,6 +9,26 @@ the results with a model of your choice.
 verbatim copy of the previous launcher; every provider flag, result-folder
 layout, and safety behavior is identical. Only the desktop app was rewritten.
 
+## Install from a release DMG
+
+Download `Model-Compare-Studio-<version>.dmg` from the
+[Releases](https://github.com/nthndvs/mcs/releases) page, open it, and drag
+**Model Compare Studio** to Applications.
+
+The app is ad-hoc signed (no Apple Developer ID), so macOS Gatekeeper blocks
+the first launch with "security could not be verified." Either:
+
+1. Try to open the app once, then go to **System Settings → Privacy &
+   Security** and click **Open Anyway** next to the Model Compare Studio
+   message; or
+2. In Terminal, after copying to Applications:
+
+   ```sh
+   xattr -cr "/Applications/Model Compare Studio.app"
+   ```
+
+   This removes the download quarantine flag; the app then opens normally.
+
 ## What's new over the previous app
 
 - **True SwiftUI interface** that follows the system appearance (light/dark),

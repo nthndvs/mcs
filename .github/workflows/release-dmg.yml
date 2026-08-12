@@ -52,4 +52,10 @@ jobs:
             gh release create "$tag" "$dmg" "$dmg.sha256" \
               --title "Model Compare Studio ${tag#v}" \
               --generate-notes
+            # Auto-generated notes omit the Gatekeeper workaround every
+            # ad-hoc-signed download needs, so append it after creation.
+            notes=$(mktemp)
+            gh release view "$tag" --json body --jq .body > "$notes"
+            cat .github/release-install-notes.md >> "$notes"
+            gh release edit "$tag" --notes-file "$notes"
           fi
