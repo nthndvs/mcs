@@ -1,0 +1,10 @@
+# macOS noise
+.DS_Store
+
+# Build outputs (regenerate with build-app.zsh / build-dmg.zsh / make-icon.py)
+dist/
+Model Compare Studio.app/
+assets/AppIcon.iconset/
+
+# Local state
+results/
