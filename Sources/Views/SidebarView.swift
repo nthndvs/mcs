@@ -374,6 +374,7 @@ struct CustomPresetButton: View {
     let slot: Int
     @EnvironmentObject var state: AppState
     @State private var showingNameSheet = false
+    @State private var showingActions = false
     @State private var name = ""
 
     private var preset: ProviderPreset? { state.customPresets[slot] }
@@ -381,7 +382,10 @@ struct CustomPresetButton: View {
     var body: some View {
         Button {
             if preset != nil {
-                state.applyCustomPreset(slot: slot)
+                // Never apply silently: a plain click offers explicit choices
+                // so tweaking settings and then clicking a preset can't wipe
+                // the current selections by surprise.
+                showingActions = true
             } else {
                 name = ""
                 showingNameSheet = true
@@ -393,17 +397,27 @@ struct CustomPresetButton: View {
         .opacity(preset == nil ? 0.7 : 1)
         .help(preset == nil
               ? "No preset saved here yet. Click to save the current provider and synthesis settings."
-              : "Apply “\(preset!.name)”. Right-click to overwrite, rename, or delete.")
+              : "Apply, replace, or delete the “\(preset!.name)” preset.")
+        .confirmationDialog(
+            "Preset “\(preset?.name ?? "Custom \(slot)")”",
+            isPresented: $showingActions,
+            titleVisibility: .visible
+        ) {
+            Button("Apply") { state.applyCustomPreset(slot: slot) }
+            Button("Replace with current settings…") {
+                name = preset?.name ?? ""
+                showingNameSheet = true
+            }
+            Button("Delete preset", role: .destructive) { state.clearCustomPreset(slot: slot) }
+            Button("Cancel", role: .cancel) {}
+        }
         .contextMenu {
-            Button("Save current settings here…") {
+            Button("Apply") { state.applyCustomPreset(slot: slot) }
+            Button("Replace with current settings…") {
                 name = preset?.name ?? ""
                 showingNameSheet = true
             }
             if preset != nil {
-                Button("Rename…") {
-                    name = preset?.name ?? ""
-                    showingNameSheet = true
-                }
                 Divider()
                 Button("Delete preset", role: .destructive) { state.clearCustomPreset(slot: slot) }
             }

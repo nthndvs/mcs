@@ -402,6 +402,9 @@ final class AppState: ObservableObject {
 
     private func startComparison(_ text: String, usingConversation: Bool) {
         guard process == nil else { return }
+        // Commit any in-progress combo-box edit (e.g. a custom model ID whose
+        // field editor is still active) before the settings are read.
+        NSApp.keyWindow?.makeFirstResponder(nil)
         activePrompt = text
         activeResultsFolder = nil
         pendingProviderKeys = Set(includedProviders.map(\.rawValue))

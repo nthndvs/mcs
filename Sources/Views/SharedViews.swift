@@ -94,6 +94,7 @@ struct EditableComboBox: NSViewRepresentable {
         combo.isEditable = true
         combo.completes = true
         combo.addItems(withObjectValues: items)
+        combo.stringValue = text
         combo.placeholderString = placeholder
         combo.font = .systemFont(ofSize: 12)
         combo.target = context.coordinator
@@ -104,8 +105,15 @@ struct EditableComboBox: NSViewRepresentable {
 
     func updateNSView(_ combo: NSComboBox, context: Context) {
         context.coordinator.parent = self
-        if combo.stringValue != text { combo.stringValue = text }
-        if (combo.objectValues as? [String]) != items {
+        // Never write state back into the combo while the user is editing it:
+        // a re-render triggered by an unrelated control (status text, a key
+        // field's CLI-status refresh) would otherwise stomp the in-progress
+        // edit with the last committed value — the "selection reset" bug.
+        let isEditing = combo.currentEditor() != nil
+        if !isEditing, combo.stringValue != text {
+            combo.stringValue = text
+        }
+        if !isEditing, (combo.objectValues as? [String]) != items {
             combo.removeAllItems()
             combo.addItems(withObjectValues: items)
         }
@@ -125,6 +133,16 @@ struct EditableComboBox: NSViewRepresentable {
             guard let combo = notification.object as? NSComboBox else { return }
             parent.text = combo.stringValue
             parent.onChange(combo.stringValue)
+        }
+
+        /// Commit the final text when focus leaves, so a typed value is never
+        /// lost even if an earlier re-render skipped the state update.
+        func controlTextDidEndEditing(_ notification: Notification) {
+            guard let combo = notification.object as? NSComboBox else { return }
+            if parent.text != combo.stringValue {
+                parent.text = combo.stringValue
+                parent.onChange(combo.stringValue)
+            }
         }
     }
 }
