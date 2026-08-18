@@ -54,6 +54,13 @@ final class AppState: ObservableObject {
     /// User-saved quick-select groupings, keyed by slot (1 and 2).
     @Published private(set) var customPresets: [Int: ProviderPreset] = [:]
 
+    // MARK: - Updates
+
+    /// A newer GitHub release, when a check found one. Drives the banner.
+    @Published var availableUpdate: UpdateInfo?
+    /// One-off alert text for manual "Check for Updates…" results.
+    @Published var updateAlert: UpdateAlert?
+
     // MARK: - Private run bookkeeping
 
     private var process: Process?
@@ -229,7 +236,7 @@ final class AppState: ObservableObject {
         }
         let preset: [(ProviderID, String, String)] = [
             (.meta, "muse-spark-1.2-contributor", "high"),
-            (.google, "gemini-3.6-flash-high", "high"),
+            (.google, "gemini-3.7-flash-high", "high"),
             (.deepseek, "deepseek-v4-flash", "high"),
             (.grok, "grok-4.6", "high"),
         ]
@@ -240,7 +247,7 @@ final class AppState: ObservableObject {
         summaryModel = "gpt-5.6-luna"
         summaryEffort = "high"
         persistAllPreferences()
-        statusText = "Fast Mode: Meta 1.2 Contributor, Gemini 3.6 Flash, DeepSeek V4 Flash, Grok 4.6 (all High) — GPT-5.6 Luna High synthesizes."
+        statusText = "Fast Mode: Meta 1.2 Contributor, Gemini 3.7 Flash, DeepSeek V4 Flash, Grok 4.6 (all High) — GPT-5.6 Luna High synthesizes."
     }
 
     /// Saves the current provider and synthesis settings as a named preset.
@@ -943,6 +950,52 @@ final class AppState: ObservableObject {
 
     func openSummaryReader() {
         reader = ReaderContent(title: "Synthesis · Model Compare", body: synthesisText)
+    }
+
+    // MARK: - Updates
+
+    /// Silent launch-time check: only surfaces the banner when a newer
+    /// release exists; failures are ignored so startup is never noisy.
+    func checkForUpdatesOnLaunch() {
+        Task {
+            if case .success(.some(let info)) = await UpdateService.checkForUpdate() {
+                availableUpdate = info
+            }
+        }
+    }
+
+    /// Menu-driven check: always reports the outcome, including up-to-date
+    /// and the reasons a check might not be possible.
+    func checkForUpdatesManually() {
+        Task {
+            switch await UpdateService.checkForUpdate() {
+            case .success(.some(let info)):
+                availableUpdate = info
+            case .success(.none):
+                updateAlert = UpdateAlert(
+                    title: "You're up to date",
+                    message: "Model Compare Studio \(UpdateService.currentVersion) is the latest release."
+                )
+            case .failure(.unreachable):
+                updateAlert = UpdateAlert(
+                    title: "Update check failed",
+                    message: "Couldn't reach GitHub. Check your internet connection and try again."
+                )
+            case .failure(.noReleaseFound):
+                updateAlert = UpdateAlert(
+                    title: "Update check unavailable",
+                    message: "GitHub does not serve release information for private repositories. Make the repository public to enable update checks."
+                )
+            }
+        }
+    }
+
+    func openUpdateRelease() {
+        if let url = availableUpdate?.releaseURL { NSWorkspace.shared.open(url) }
+    }
+
+    func dismissUpdateBanner() {
+        availableUpdate = nil
     }
 
     // MARK: - Helpers

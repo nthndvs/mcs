@@ -53,6 +53,11 @@ the first launch with "security could not be verified." Either:
 - **Saved chats as a first-class list** — click to resume, right-click to
   reveal in Finder or move to Trash. The 30 newest conversations are kept.
 - **Collapsible activity log** that stays out of the way until you want it.
+- **Update checks** — the app quietly checks GitHub Releases at launch and
+  shows a banner when a newer version is available, with a Download button
+  that opens the release page. A manual "Check for Updates…" lives in the
+  app menu. (Requires the GitHub repository to be public; GitHub serves no
+  release information anonymously for private repos.)
 - **Focused reader** overlay for any response or the synthesis (Esc to return).
 - **Proper app icon and Dock presence** — the bundle is a first-class
   LaunchServices app you can pin (Keep in Dock) and launch from Spotlight.

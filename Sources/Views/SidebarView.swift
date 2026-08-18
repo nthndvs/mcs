@@ -32,7 +32,7 @@ struct SidebarView: View {
                 Button { state.applyFastMode() } label: {
                     Label("Fast Mode", systemImage: "bolt.fill")
                 }
-                .help("Meta 1.2 Contributor, Gemini 3.6 Flash, DeepSeek V4 Flash, and Grok 4.6 — all at High effort — with GPT-5.6 Luna High synthesizing.")
+                .help("Meta 1.2 Contributor, Gemini 3.7 Flash, DeepSeek V4 Flash, and Grok 4.6 — all at High effort — with GPT-5.6 Luna High synthesizing.")
                 Spacer()
             }
             .controlSize(.small)

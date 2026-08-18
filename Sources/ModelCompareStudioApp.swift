@@ -19,6 +19,9 @@ struct ModelCompareStudioApp: App {
         .windowResizability(.contentMinSize)
         .defaultSize(width: 1340, height: 900)
         .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") { state.checkForUpdatesManually() }
+            }
             CommandGroup(after: .newItem) {
                 Button("New Conversation") { state.newConversation() }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
@@ -42,6 +45,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // and text fields refuse keyboard input.
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+        AppDelegate.state?.checkForUpdatesOnLaunch()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }

@@ -36,30 +36,36 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
         case .claude:
             // `opus` follows Claude Code's latest Opus alias, while the explicit
             // IDs make it possible to pin a comparison to a released generation.
-            return ["Default", "opus", "sonnet", "haiku", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-opus-4-6", "claude-sonnet-4-6", "claude-sonnet-4-5"]
+            // claude-fable-5 is Anthropic's Mythos-class flagship (GA July 1,
+            // 2026, at 2x Opus pricing); claude-opus-5 is the current Opus.
+            return ["Default", "opus", "sonnet", "haiku", "claude-fable-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-opus-4-6", "claude-sonnet-4-6", "claude-sonnet-4-5"]
         case .grok:
             // Read from the installed Grok CLI's authenticated model catalog on
             // August 12, 2026. Older Grok 4.3 and the harness name are not model
             // IDs and resulted in unnecessary request failures.
             return ["Default", "grok-4.6", "grok-4.5"]
         case .glm:
-            return ["Default", "glm-5.2", "glm-5-turbo", "glm-4.7", "glm-4.5-air"]
+            // GLM-5.3 (August 14, 2026) is the current flagship on the GLM
+            // Coding Plan; reasoning effort ladder is low / high / max.
+            return ["Default", "glm-5.3", "glm-5.2", "glm-5-turbo", "glm-4.7", "glm-4.5-air"]
         case .kimi:
             // Kimi Code's OAuth-managed CLI models are addressed by aliases from
             // its refreshed local catalog. `kimi-code/k3` is the Kimi K3 alias;
             // the two K2.7 entries remain available for compatibility and speed.
             return ["Default", "kimi-code/k3", "kimi-code/k3-256k", "kimi-code/kimi-for-coding", "kimi-code/kimi-for-coding-highspeed"]
         case .qwen:
-            // Qwen Code's ModelStudio catalog. `qwen3.8-max-preview` is a
-            // Token Plan preview: the raw model ID is sent, while the user's
-            // Qwen `/auth` configuration supplies the correct plan endpoint.
-            return ["Default", "qwen3.8-max-preview", "qwen3-max", "qwen3-max-preview", "qwen3-max-2026-01-23", "qwen3.7-plus", "qwen3.6-plus", "qwen3.5-plus", "qwen3-coder-plus", "qwen3-coder-next"]
+            // Qwen Code's ModelStudio catalog. `qwen3.8-max` went GA on
+            // August 3, 2026; the preview ID remains for token-plan accounts
+            // pinned to it. The field stays editable for account-specific IDs.
+            return ["Default", "qwen3.8-max", "qwen3.8-max-preview", "qwen3-max", "qwen3-max-preview", "qwen3-max-2026-01-23", "qwen3.7-plus", "qwen3.6-plus", "qwen3.5-plus", "qwen3-coder-plus", "qwen3-coder-next"]
         case .google:
             // Antigravity exposes the models available to the signed-in Google
-            // account through `agy models`. The field remains editable for
-            // account-specific additions and future releases.
+            // account through `agy models` (catalog re-read August 18, 2026,
+            // adding the Gemini 3.7 Flash line released August 13). The field
+            // remains editable for account-specific additions and releases.
             return [
                 "Default",
+                "gemini-3.7-flash-high", "gemini-3.7-flash-medium", "gemini-3.7-flash-low",
                 "gemini-3.6-flash-high", "gemini-3.6-flash-medium", "gemini-3.6-flash-low",
                 "gemini-3.5-flash-high", "gemini-3.5-flash-medium", "gemini-3.5-flash-low",
                 "gemini-3.1-pro-high", "gemini-3.1-pro-low",
