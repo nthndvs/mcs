@@ -299,7 +299,7 @@ if [[ -n $attachment_context ]]; then
   prompt+="$attachment_context"
 fi
 if [[ $web_search == true ]]; then
-  prompt="${prompt}\n\nONLINE RESEARCH: Use the available web-search and page-fetch tools when current, factual, or source-backed information would improve the answer. Qwen and GLM may have access to Tavily Search and Tavily Extract; prefer those tools when present. When a Tavily key is configured, Meta and DeepSeek receive a shared Tavily research brief. State when you did not search, and cite the sources you relied on."
+  prompt="${prompt}\n\nONLINE RESEARCH: If you have web-search or page-fetch tools, use them yourself whenever current, factual, or source-backed information would improve the answer — perform your own searches as part of producing this answer. Qwen and GLM may have access to Tavily Search and Tavily Extract; prefer those tools when present. A shared Tavily research brief exists, but it is supplied only to the models that have no search tools of their own (Meta, DeepSeek) and to the synthesis. You did not receive it; do not treat it as your research or refer to it as a source you consulted. State when you did not search, and cite the sources you relied on."
 fi
 
 root=${0:A:h}
@@ -606,7 +606,7 @@ prepare_direct_api_tavily_research() {
         (if ((.content? // "") | nonempty_string) then "\n  " + .content else "" end)
       ] | join("\n\n"))
     else "" end) +
-    "\n\nUse this brief as external evidence when it is relevant. Do not claim to have searched beyond these supplied sources."
+    "\n\nUse this brief as external evidence when it is relevant."
   ' "$raw_response" >"$brief"
   tavily_research_context=$(<"$brief")
   print -r -- "TAVILY_RESEARCH_READY:${brief}"
@@ -801,7 +801,7 @@ build_summary_prompt() {
   local summary="You are the synthesis model for a multi-model comparison.\n\n"
   summary+="Analyze the current request and the responses below. Clearly identify where the models agree, where they disagree, important omissions or contradictions, and an overall best answer. Use the prior conversation context when present. Do not claim consensus where there is none. Keep the synthesis self-contained and label model-specific views.\n\n"
   if [[ $web_search == true ]]; then
-    summary+="ONLINE RESEARCH: Use the available web-search and page-fetch tools when they help fact-check or reconcile the responses. Qwen and GLM may have access to Tavily Search and Tavily Extract; prefer those tools when present. Cite sources for new factual claims.\n\n"
+    summary+="ONLINE RESEARCH: If you have web-search or page-fetch tools, use them yourself to fact-check or reconcile the responses; do not rely solely on the shared Tavily brief (when one is included below). Qwen and GLM may have access to Tavily Search and Tavily Extract; prefer those tools when present. Cite sources for new factual claims.\n\n"
   fi
   if [[ -n $tavily_research_context ]]; then
     summary+="${tavily_research_context}\n\n"
@@ -1005,7 +1005,10 @@ if [[ $direct_api_needs_tavily == true ]]; then
   prepare_direct_api_tavily_research
 fi
 if [[ -n $tavily_research_context ]]; then
-  direct_api_prompt+="\n\n${tavily_research_context}"
+  # Meta and DeepSeek have no search tools in this comparison, so the brief
+  # is their only research channel; the honesty instruction applies to them
+  # alone, not to tool-capable CLI providers or the synthesis.
+  direct_api_prompt+="\n\n${tavily_research_context}\n\nYou have no web-search tools in this comparison; do not claim to have searched beyond these supplied sources."
 fi
 
 # Meta Model API is OpenAI-compatible. Muse Spark 1.2 is selected by default;
