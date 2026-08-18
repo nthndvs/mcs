@@ -577,24 +577,15 @@ invoke_responses_api() {
     return 1
   fi
 
-  # Effort naming follows each provider's own convention: Meta keeps its
-  # chat-completions reasoning_effort on the Responses surface, while DeepSeek
-  # follows OpenAI's reasoning object.
-  if [[ $key == meta ]]; then
-    request_body=$(jq -cn \
-      --arg model "$model" \
-      --arg prompt "$request_prompt" \
-      --arg effort "$effort" \
-      '{model: $model, input: $prompt, stream: false, tools: [{type: "web_search"}]}
-       + (if $effort == "default" then {} else {reasoning_effort: $effort} end)')
-  else
-    request_body=$(jq -cn \
-      --arg model "$model" \
-      --arg prompt "$request_prompt" \
-      --arg effort "$effort" \
-      '{model: $model, input: $prompt, stream: false, tools: [{type: "web_search"}]}
-       + (if $effort == "default" then {} else {reasoning: {effort: $effort}} end)')
-  fi || {
+  # Both providers' Responses surfaces follow OpenAI's reasoning object.
+  # Meta's chat-completions reasoning_effort parameter is rejected here with
+  # "unknown parameter" (verified against the live API).
+  request_body=$(jq -cn \
+    --arg model "$model" \
+    --arg prompt "$request_prompt" \
+    --arg effort "$effort" \
+    '{model: $model, input: $prompt, stream: false, tools: [{type: "web_search"}]}
+     + (if $effort == "default" then {} else {reasoning: {effort: $effort}} end)') || {
     print -r -- "FAILED: Could not prepare the API request."
     return 1
   }
@@ -616,12 +607,14 @@ invoke_responses_api() {
     return "$curl_status"
   fi
 
-  # OpenAI Responses shape: output_text when present, otherwise the text parts
-  # of message items. url_citation annotations become a source list so the
-  # answer stays auditable as plain text.
+  # OpenAI Responses shape: output_text when present, otherwise the text of
+  # each message item joined with a blank line (Meta splits preamble and
+  # answer into separate items). url_citation annotations become a source
+  # list; Meta performs searches without annotations, so the issued search
+  # queries are listed as the audit trail when no citations are present.
   local answer
   answer=$(jq -r '
-    .output_text // ([.output[]? | select(.type == "message") | .content[]? | select(.type == "output_text") | .text] | join(""))
+    .output_text // ([.output[]? | select(.type == "message") | ([.content[]? | select(.type == "output_text") | .text] | join(""))] | join("\n\n"))
   ' "$raw_response" 2>/dev/null)
   if [[ -z ${answer//[[:space:]]/} ]]; then
     print -r -- "FAILED: The API returned no text response. See ${key}.raw.json for diagnostics."
@@ -629,8 +622,10 @@ invoke_responses_api() {
   fi
   print -r -- "$answer"
   jq -r '
-    [.output[]? | select(.type == "message") | .content[]? | select(.type == "output_text") | .annotations[]? | select(.type == "url_citation") | .url]
-    | unique | if length > 0 then "\n\nSources searched:\n" + (map("- " + .) | join("\n")) else "" end
+    ([.output[]? | select(.type == "message") | .content[]? | select(.type == "output_text") | .annotations[]? | select(.type == "url_citation") | .url] | unique) as $citations
+    | ([.output[]? | select(.type == "web_search_call") | .action?.query // empty] | unique) as $queries
+    | (if ($citations | length) > 0 then "\n\nSources searched:\n" + ($citations | map("- " + .) | join("\n")) else "" end)
+      + (if (($citations | length) == 0) and (($queries | length) > 0) then "\n\nWeb searches performed:\n" + ($queries | map("- " + .) | join("\n")) else "" end)
   ' "$raw_response" 2>/dev/null
   return 0
 }
