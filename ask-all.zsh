@@ -299,7 +299,7 @@ if [[ -n $attachment_context ]]; then
   prompt+="$attachment_context"
 fi
 if [[ $web_search == true ]]; then
-  prompt="${prompt}\n\nONLINE RESEARCH: If you have web-search or page-fetch tools, use them yourself whenever current, factual, or source-backed information would improve the answer — perform your own searches as part of producing this answer. Qwen and GLM may have access to Tavily Search and Tavily Extract; prefer those tools when present. A shared Tavily research brief exists, but it is supplied only to the models that have no search tools of their own (Meta, DeepSeek) and to the synthesis. You did not receive it; do not treat it as your research or refer to it as a source you consulted. State when you did not search, and cite the sources you relied on."
+  prompt="${prompt}\n\nONLINE RESEARCH: If you have web-search or page-fetch tools, use them yourself whenever current, factual, or source-backed information would improve the answer — perform your own searches as part of producing this answer. Qwen and GLM may have access to Tavily Search and Tavily Extract; prefer those tools when present. Every model in this comparison researches independently; do not assume any shared research exists or refer to research you did not perform yourself. State when you did not search, and cite the sources you relied on."
 fi
 
 root=${0:A:h}
@@ -544,14 +544,106 @@ invoke_openai_compatible_api() {
   fi
 }
 
+# Meta and DeepSeek both expose the OpenAI Responses API wire format with a
+# server-side web_search tool. This is their primary research path whenever
+# online research is on, so each performs its own live searches instead of
+# relying on the shared Tavily brief. Note that Meta bills search grounding
+# separately per query; DeepSeek includes its search in the request.
+invoke_responses_api() {
+  local key=$1
+  local model=$2
+  local effort=$3
+  local request_prompt=$4
+  local endpoint api_key="" request_body
+  local raw_response="$results_dir/$key.raw.json"
+  local curl_status
+
+  case "$key" in
+    meta)
+      endpoint="https://api.meta.ai/v1/responses"
+      api_key=${META_API_KEY:-}
+      ;;
+    deepseek)
+      endpoint="https://api.deepseek.com/responses"
+      api_key=${DEEPSEEK_API_KEY:-}
+      ;;
+  esac
+  if [[ -z $api_key ]]; then
+    print -r -- "SKIPPED: Set the ${key:u}_API_KEY to use this API provider."
+    return 1
+  fi
+  if ! command -v jq >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then
+    print -r -- "SKIPPED: This API provider needs jq and curl, which are not available on this Mac."
+    return 1
+  fi
+
+  # Effort naming follows each provider's own convention: Meta keeps its
+  # chat-completions reasoning_effort on the Responses surface, while DeepSeek
+  # follows OpenAI's reasoning object.
+  if [[ $key == meta ]]; then
+    request_body=$(jq -cn \
+      --arg model "$model" \
+      --arg prompt "$request_prompt" \
+      --arg effort "$effort" \
+      '{model: $model, input: $prompt, stream: false, tools: [{type: "web_search"}]}
+       + (if $effort == "default" then {} else {reasoning_effort: $effort} end)')
+  else
+    request_body=$(jq -cn \
+      --arg model "$model" \
+      --arg prompt "$request_prompt" \
+      --arg effort "$effort" \
+      '{model: $model, input: $prompt, stream: false, tools: [{type: "web_search"}]}
+       + (if $effort == "default" then {} else {reasoning: {effort: $effort}} end)')
+  fi || {
+    print -r -- "FAILED: Could not prepare the API request."
+    return 1
+  }
+
+  /usr/bin/curl --silent --show-error --fail-with-body \
+    --connect-timeout 20 --max-time 900 \
+    -X POST "$endpoint" \
+    -H "Authorization: Bearer $api_key" \
+    -H "Content-Type: application/json" \
+    --data-binary "$request_body" >"$raw_response"
+  curl_status=$?
+
+  if [[ -s $raw_response ]] && jq -e 'has("error") and .error != null' "$raw_response" >/dev/null 2>&1; then
+    jq -r '"FAILED: " + ((.error.message? // .error // "The API returned an error.") | if type == "string" then . else tostring end)' "$raw_response"
+    return 1
+  fi
+  if (( curl_status != 0 )); then
+    print -r -- "FAILED: The API request could not complete. See ${key}.stderr for connection details."
+    return "$curl_status"
+  fi
+
+  # OpenAI Responses shape: output_text when present, otherwise the text parts
+  # of message items. url_citation annotations become a source list so the
+  # answer stays auditable as plain text.
+  local answer
+  answer=$(jq -r '
+    .output_text // ([.output[]? | select(.type == "message") | .content[]? | select(.type == "output_text") | .text] | join(""))
+  ' "$raw_response" 2>/dev/null)
+  if [[ -z ${answer//[[:space:]]/} ]]; then
+    print -r -- "FAILED: The API returned no text response. See ${key}.raw.json for diagnostics."
+    return 1
+  fi
+  print -r -- "$answer"
+  jq -r '
+    [.output[]? | select(.type == "message") | .content[]? | select(.type == "output_text") | .annotations[]? | select(.type == "url_citation") | .url]
+    | unique | if length > 0 then "\n\nSources searched:\n" + (map("- " + .) | join("\n")) else "" end
+  ' "$raw_response" 2>/dev/null
+  return 0
+}
+
 # Meta Model API and DeepSeek's OpenAI-compatible endpoint do not share the
-# CLI/MCP tool harnesses used by Qwen and GLM. For them, perform one bounded
-# Tavily Search request per comparison and attach its answer and sources to
-# each direct API request. This keeps web research available without charging
-# separate Tavily searches for Meta, DeepSeek, and their possible synthesis.
-# Only the new user request is sent to Tavily: prior chat context, attachments,
-# API keys, and model responses stay local to Model Compare.
+# CLI/MCP tool harnesses used by Qwen and GLM. When their native search
+# endpoint fails (or online research is off), perform one bounded Tavily
+# Search request per comparison and attach its answer and sources to each
+# direct API request. Only the new user request is sent to Tavily: prior chat
+# context, attachments, API keys, and model responses stay local to Model
+# Compare.
 tavily_research_context=""
+tavily_brief_prepared=false
 prepare_direct_api_tavily_research() {
   tavily_research_context=""
   [[ $web_search == true && -n $tavily_key ]] || return 0
@@ -610,6 +702,49 @@ prepare_direct_api_tavily_research() {
   ' "$raw_response" >"$brief"
   tavily_research_context=$(<"$brief")
   print -r -- "TAVILY_RESEARCH_READY:${brief}"
+}
+
+# The shared brief is prepared lazily now that native search is the primary
+# path: it is only requested when a native search endpoint has failed.
+ensure_direct_api_brief() {
+  [[ $tavily_brief_prepared == true ]] && return 0
+  tavily_brief_prepared=true
+  prepare_direct_api_tavily_research
+}
+
+# Routes Meta and DeepSeek requests: native server-side web search when online
+# research is on, with a graceful fallback to the chat-completions request
+# (plus the shared Tavily brief, when a key exists) if the search endpoint
+# is unavailable for the account or model.
+invoke_direct_api() {
+  local key=$1
+  local model=$2
+  local effort=$3
+  local request_prompt=$4
+  if [[ $web_search == true ]]; then
+    local search_response="$results_dir/$key.native-search.txt"
+    if invoke_responses_api "$key" "$model" "$effort" "$request_prompt" >"$search_response" 2>>"$results_dir/$key.stderr"; then
+      cat "$search_response"
+      return 0
+    fi
+    {
+      print -r -- "Native web search was unavailable for $key; falling back to the standard request."
+      [[ -s $search_response ]] && cat "$search_response"
+    } >>"$results_dir/$key.stderr"
+  fi
+  local fallback_prompt=$request_prompt
+  # Brief-preparation diagnostics go to the diagnostics file, not the
+  # response: this runs inside the provider's output-capturing subshell.
+  ensure_direct_api_brief >&2
+  if [[ -n $tavily_research_context ]]; then
+    fallback_prompt+="\n\n${tavily_research_context}\n\nYou have no web-search tools in this comparison; do not claim to have searched beyond these supplied sources."
+  fi
+  local endpoint
+  case "$key" in
+    meta) endpoint="https://api.meta.ai/v1/chat/completions" ;;
+    deepseek) endpoint="https://api.deepseek.com/chat/completions" ;;
+  esac
+  invoke_openai_compatible_api "$key" "$endpoint" "$model" "$effort" "$fallback_prompt"
 }
 
 is_retryable_api_error() {
@@ -801,10 +936,7 @@ build_summary_prompt() {
   local summary="You are the synthesis model for a multi-model comparison.\n\n"
   summary+="Analyze the current request and the responses below. Clearly identify where the models agree, where they disagree, important omissions or contradictions, and an overall best answer. Use the prior conversation context when present. Do not claim consensus where there is none. Keep the synthesis self-contained and label model-specific views.\n\n"
   if [[ $web_search == true ]]; then
-    summary+="ONLINE RESEARCH: If you have web-search or page-fetch tools, use them yourself to fact-check or reconcile the responses; do not rely solely on the shared Tavily brief (when one is included below). Qwen and GLM may have access to Tavily Search and Tavily Extract; prefer those tools when present. Cite sources for new factual claims.\n\n"
-  fi
-  if [[ -n $tavily_research_context ]]; then
-    summary+="${tavily_research_context}\n\n"
+    summary+="ONLINE RESEARCH: If you have web-search or page-fetch tools, use them yourself to fact-check or reconcile the responses. Qwen and GLM may have access to Tavily Search and Tavily Extract; prefer those tools when present. Cite sources for new factual claims.\n\n"
   fi
   if [[ -n $conversation_context ]]; then
     summary+="PRIOR CONVERSATION CONTEXT:\n${conversation_context}\n\n"
@@ -961,16 +1093,9 @@ if [[ $allow_tools == false ]]; then
   grok_headless_args+=(--disallowed-tools "run_terminal_cmd,search_replace,read_file,grep,list_dir,task,todo_write,search_tool,use_tool")
 fi
 
-# Use one cost-bounded Tavily Search brief for direct API providers whenever a
-# saved Tavily key exists. Standard CLI providers retain their native tools.
-direct_api_needs_tavily=false
-if [[ -n ${META_API_KEY:-} ]] && { provider_is_enabled meta || [[ $summary_model == meta ]]; }; then
-  direct_api_needs_tavily=true
-fi
-if [[ -n ${DEEPSEEK_API_KEY:-} ]] && { provider_is_enabled deepseek || [[ $summary_model == deepseek ]]; }; then
-  direct_api_needs_tavily=true
-fi
-direct_api_prompt="$prompt"
+# Direct API providers (Meta, DeepSeek) search natively through their own
+# Responses endpoints when online research is on; the shared Tavily brief is
+# prepared lazily inside invoke_direct_api only if a native search fails.
 
 if ! provider_is_enabled codex; then
   skip codex "Not selected for this comparison."
@@ -998,22 +1123,14 @@ else
   skip google "Antigravity CLI is not installed or not on PATH. Install or set AGY_BIN to its full path."
 fi
 
-# Start the local CLI providers before the bounded Tavily request, so their
-# responses can continue to appear promptly while the direct API research brief
-# is being prepared.
-if [[ $direct_api_needs_tavily == true ]]; then
-  prepare_direct_api_tavily_research
-fi
-if [[ -n $tavily_research_context ]]; then
-  # Meta and DeepSeek have no search tools in this comparison, so the brief
-  # is their only research channel; the honesty instruction applies to them
-  # alone, not to tool-capable CLI providers or the synthesis.
-  direct_api_prompt+="\n\n${tavily_research_context}\n\nYou have no web-search tools in this comparison; do not claim to have searched beyond these supplied sources."
-fi
+# Meta and DeepSeek launch through invoke_direct_api, which tries native
+# server-side search first and prepares the shared Tavily brief lazily only
+# when a native search endpoint has failed.
 
 # Meta Model API is OpenAI-compatible. Muse Spark 1.2 is selected by default;
 # the user can supply a different account-available identifier in the editable
-# model field. This is a direct API request, not the Meta AI consumer app.
+# model field. With online research on, Meta searches natively via its
+# Responses API (search grounding is billed per query by Meta).
 if ! provider_is_enabled meta; then
   skip meta "Not selected for this comparison."
 elif [[ -z ${META_API_KEY:-} ]]; then
@@ -1021,14 +1138,13 @@ elif [[ -z ${META_API_KEY:-} ]]; then
 else
   meta_selected_model=$meta_model
   if [[ $meta_selected_model == default ]]; then meta_selected_model=muse-spark-1.2; fi
-  run meta invoke_openai_compatible_api meta \
-    "https://api.meta.ai/v1/chat/completions" \
-    "$meta_selected_model" "$meta_effort" "$direct_api_prompt"
+  run meta invoke_direct_api meta "$meta_selected_model" "$meta_effort" "$prompt"
 fi
 
-# DeepSeek's current V4 models use the same OpenAI-compatible endpoint. Their
+# DeepSeek's current V4 models use the same OpenAI-compatible surface. Their
 # `reasoning_effort` accepts high/max; when left at Default the API uses its
-# own model default. DeepSeek does not expose native web search in this route.
+# own model default. With online research on, DeepSeek searches natively via
+# its Responses API (server-side web_search, no separate charge).
 if ! provider_is_enabled deepseek; then
   skip deepseek "Not selected for this comparison."
 elif [[ -z ${DEEPSEEK_API_KEY:-} ]]; then
@@ -1036,9 +1152,7 @@ elif [[ -z ${DEEPSEEK_API_KEY:-} ]]; then
 else
   deepseek_selected_model=$deepseek_model
   if [[ $deepseek_selected_model == default ]]; then deepseek_selected_model=deepseek-v4-pro; fi
-  run deepseek invoke_openai_compatible_api deepseek \
-    "https://api.deepseek.com/chat/completions" \
-    "$deepseek_selected_model" "$deepseek_effort" "$direct_api_prompt"
+  run deepseek invoke_direct_api deepseek "$deepseek_selected_model" "$deepseek_effort" "$prompt"
 fi
 
 grok_bin=$(find_cli grok || true)
@@ -1190,9 +1304,7 @@ if [[ $summary_model != none ]]; then
       if [[ -n ${META_API_KEY:-} ]]; then
         meta_summary_model=$summary_model_id
         if [[ $meta_summary_model == default ]]; then meta_summary_model=muse-spark-1.2; fi
-        run_summary invoke_openai_compatible_api meta \
-          "https://api.meta.ai/v1/chat/completions" \
-          "$meta_summary_model" "$summary_effort" "$summary_prompt"
+        run_summary invoke_direct_api meta "$meta_summary_model" "$summary_effort" "$summary_prompt"
       else
         skip summary "Meta synthesis requires a Meta Model API key."
       fi
@@ -1201,9 +1313,7 @@ if [[ $summary_model != none ]]; then
       if [[ -n ${DEEPSEEK_API_KEY:-} ]]; then
         deepseek_summary_model=$summary_model_id
         if [[ $deepseek_summary_model == default ]]; then deepseek_summary_model=deepseek-v4-pro; fi
-        run_summary invoke_openai_compatible_api deepseek \
-          "https://api.deepseek.com/chat/completions" \
-          "$deepseek_summary_model" "$summary_effort" "$summary_prompt"
+        run_summary invoke_direct_api deepseek "$deepseek_summary_model" "$summary_effort" "$summary_prompt"
       else
         skip summary "DeepSeek synthesis requires a DeepSeek API key."
       fi

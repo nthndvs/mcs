@@ -69,7 +69,8 @@ the first launch with "security could not be verified." Either:
 Everything from the previous app is preserved: nine providers (Codex, Claude,
 Grok, GLM via Claude, Kimi, Qwen, Google Antigravity, plus Meta and DeepSeek
 direct APIs), per-provider Include/model/effort with editable model fields,
-attachments, Safe mode, online research with Z.AI/Tavily keys, synthesis with
+attachments, Safe mode, online research (native web search for Meta and
+DeepSeek; Z.AI/Tavily keys for the rest), synthesis with
 its own model/effort, follow-ups with full conversation context, per-provider
 "stop waiting", install/sign-in helpers, macOS Keychain storage, saved chats,
 and PDF report export.
@@ -149,7 +150,7 @@ Sources/                    SwiftUI app, one concern per file
   PDFReportService.swift        shareable PDF export
   Views/                        sidebar, composer, response grid, synthesis,
                                 activity log, focused reader, shared controls
-ask-all.zsh                 comparison engine (verbatim from the previous app)
+ask-all.zsh                 comparison engine (evolved from the previous app)
 build-app.zsh / build-dmg.zsh packaging
 ```
 
@@ -160,5 +161,9 @@ build-app.zsh / build-dmg.zsh packaging
 - GLM runs through the installed Claude Code CLI with a Z.AI key; Meta and
   DeepSeek are direct pay-as-you-go APIs and begin excluded until you add keys.
 - Safe mode (on by default) prevents the CLIs from changing files or running
-  commands; online research (also on by default) lets supported providers use
-  web search and asks every model to cite its sources.
+  commands; online research (also on by default) lets every capable model do
+  its own web research and cite its sources. Meta and DeepSeek search natively
+  through their Responses APIs (Meta bills search grounding per query on top of
+  tokens); if a native search call fails, the app falls back to the provider's
+  chat endpoint with a shared Tavily research brief. Qwen and GLM research via
+  their Tavily/Z.AI MCP configuration.

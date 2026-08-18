@@ -135,7 +135,7 @@ struct SidebarView: View {
                 Toggle("Use online research when supported", isOn: $state.onlineResearch)
                     .toggleStyle(.checkbox)
                     .font(.callout)
-                    .help("Each capable provider performs its own web research with its search and page-fetch tools. A Tavily key gives Qwen and GLM an independent research source, and supplies a shared research brief only to Meta and DeepSeek (which have no search tools here) and to the synthesis. Safe mode still prevents local file and command tools.")
+                    .help("Each provider researches with its own tools: CLI providers use their built-in search, and Meta and DeepSeek use their APIs' server-side web search (Meta bills search grounding per query, about $2.50 per 1,000). A Tavily key gives Qwen and GLM an independent research source and backs the fallback brief if a native search endpoint is unavailable. Safe mode still prevents local file and command tools.")
             }
             .card()
         }
