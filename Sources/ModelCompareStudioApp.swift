@@ -46,6 +46,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         AppDelegate.state?.checkForUpdatesOnLaunch()
+        // A restored window frame can sit partly above the menu bar (e.g.
+        // after disconnecting an external display), clipping the title bar
+        // and traffic-light buttons. Pull it back onto the visible screen.
+        DispatchQueue.main.async { self.constrainWindowsToVisibleScreen() }
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(constrainWindowsToVisibleScreen),
+            name: NSApplication.didChangeScreenParametersNotification,
+            object: nil
+        )
+    }
+
+    /// Moves any window whose title bar is above the screen's visible area
+    /// back down so the window controls are reachable. (Bottom overflow is
+    /// left alone: the title bar is still grabbable in that case.)
+    @objc private func constrainWindowsToVisibleScreen() {
+        for window in NSApp.windows where window.isVisible && window.styleMask.contains(.titled) {
+            guard let screen = window.screen ?? NSScreen.main else { continue }
+            let visible = screen.visibleFrame
+            var frame = window.frame
+            guard frame.maxY > visible.maxY else { continue }
+            if frame.height > visible.height {
+                frame.size.height = visible.height
+                frame.origin.y = visible.minY
+            } else {
+                frame.origin.y = visible.maxY - frame.height
+            }
+            window.setFrame(frame, display: true, animate: false)
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }

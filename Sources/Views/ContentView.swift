@@ -4,6 +4,16 @@ import SwiftUI
 /// reader as an overlay on the detail area.
 struct ContentView: View {
     @EnvironmentObject var state: AppState
+    @AppStorage("composerEditorHeight") private var composerEditorHeight = 96.0
+    @AppStorage("synthesisSectionHeight") private var synthesisSectionHeight = 300.0
+
+    private var composerHeight: Binding<CGFloat> {
+        Binding(get: { CGFloat(composerEditorHeight) }, set: { composerEditorHeight = $0 })
+    }
+
+    private var synthesisHeight: Binding<CGFloat> {
+        Binding(get: { CGFloat(synthesisSectionHeight) }, set: { synthesisSectionHeight = $0 })
+    }
 
     var body: some View {
         NavigationSplitView {
@@ -40,16 +50,29 @@ struct ContentView: View {
     }
 
     private var workspace: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 0) {
             if let update = state.availableUpdate {
                 updateBanner(update)
+                    .padding(.bottom, 10)
             }
-            PromptComposerView()
+            PromptComposerView(editorHeight: composerHeight)
+            VerticalDragDivider(
+                value: composerHeight,
+                range: 52...260,
+                help: "Drag to resize the prompt area"
+            )
             ResponseGridView()
                 .frame(maxHeight: .infinity)
                 .layoutPriority(1)
-            SynthesisView()
+            VerticalDragDivider(
+                value: synthesisHeight,
+                range: 200...560,
+                invert: true,
+                help: "Drag to resize the synthesis and follow-up area"
+            )
+            SynthesisView(sectionHeight: synthesisHeight.wrappedValue)
             ActivityLogView()
+                .padding(.top, 10)
         }
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

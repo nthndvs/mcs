@@ -5,6 +5,13 @@ import SwiftUI
 struct SynthesisView: View {
     @EnvironmentObject var state: AppState
     @FocusState private var followUpFocused: Bool
+    let sectionHeight: CGFloat
+
+    /// The follow-up editor scales with the section so dragging the divider
+    /// above also gives more typing room; the synthesis text takes the rest.
+    private var followUpHeight: CGFloat {
+        min(240, max(64, (sectionHeight - 120) * 0.38))
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -33,7 +40,8 @@ struct SynthesisView: View {
             }
 
             MarkdownTextView(text: state.synthesisText, baseSize: 13.5)
-                .frame(minHeight: 80, maxHeight: 150)
+                .frame(minHeight: 60, maxHeight: .infinity)
+                .layoutPriority(1)
 
             Divider()
 
@@ -55,7 +63,7 @@ struct SynthesisView: View {
                             .allowsHitTesting(false)
                     }
                 }
-                .frame(height: 52)
+                .frame(height: followUpHeight)
 
                 VStack(spacing: 6) {
                     Button { state.sendFollowUp(); state.followUp = "" } label: {
@@ -72,6 +80,7 @@ struct SynthesisView: View {
             }
         }
         .card()
+        .frame(height: sectionHeight)
     }
 }
 

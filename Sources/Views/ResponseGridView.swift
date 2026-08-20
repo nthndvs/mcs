@@ -29,17 +29,29 @@ struct ResponseGridView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 12) {
-                        ForEach(visibleProviders) { provider in
-                            ResponseCardView(provider: provider)
-                                .frame(height: 250)
+                GeometryReader { proxy in
+                    ScrollView {
+                        LazyVGrid(columns: columns, spacing: 12) {
+                            ForEach(visibleProviders) { provider in
+                                ResponseCardView(provider: provider)
+                                    .frame(height: cardHeight(in: proxy.size))
+                            }
                         }
+                        .padding(1) // room for focus rings/shadows
                     }
-                    .padding(1) // room for focus rings/shadows
                 }
             }
         }
+    }
+
+    /// Cards fill the grid's height when everything fits in one row, so
+    /// widening the responses panel with the dividers immediately gives
+    /// every answer more room; multiple rows keep the compact card height.
+    private func cardHeight(in size: CGSize) -> CGFloat {
+        let perRow = max(1, Int((size.width + 12) / 342)) // 330 card minimum + 12 spacing
+        let rows = (visibleProviders.count + perRow - 1) / perRow
+        if rows <= 1 { return max(250, size.height - 2) }
+        return 250
     }
 }
 

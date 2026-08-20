@@ -4,6 +4,7 @@ import SwiftUI
 struct PromptComposerView: View {
     @EnvironmentObject var state: AppState
     @FocusState private var promptFocused: Bool
+    @Binding var editorHeight: CGFloat
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -38,7 +39,7 @@ struct PromptComposerView: View {
                         .allowsHitTesting(false)
                 }
             }
-            .frame(minHeight: 64, maxHeight: 110)
+            .frame(height: editorHeight)
 
             if !state.attachments.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {

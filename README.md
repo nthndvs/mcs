@@ -37,7 +37,14 @@ the first launch with "security could not be verified." Either:
   organized into collapsible sections instead of one dense scroll page.
 - **Adaptive response grid** — answer cards flow into as many columns as the
   window fits; each card scrolls internally, so a long answer never distorts
-  the layout. No more manual divider wrangling.
+  the layout. When every card fits in one row, the cards stretch to fill the
+  panel's height.
+- **Resizable panels** — drag the grabber between Ask the room, the response
+  grid, and the Synthesis/follow-up area to give each more room; the sizes
+  persist across launches. The follow-up editor grows with the section.
+- **Rich response rendering** — tables, links (clickable, including bare
+  URLs), blockquotes, strikethrough, task checkboxes, and nested lists render
+  natively in responses, the synthesis, and PDF reports.
 - **Per-model elapsed time and word counts** on each response card, plus a
   live run timer.
 - **Copy buttons** on every response and the synthesis.

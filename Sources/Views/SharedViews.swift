@@ -162,6 +162,46 @@ struct CardStyle: ViewModifier {
     }
 }
 
+/// A horizontal grabber the user drags to resize the panel above or below it.
+/// `invert` flips the drag direction for dividers that sit *above* the panel
+/// they resize (dragging up grows that panel).
+struct VerticalDragDivider: View {
+    @Binding var value: CGFloat
+    let range: ClosedRange<CGFloat>
+    var invert: Bool = false
+    var help: String = "Drag to resize"
+
+    @State private var dragStart: CGFloat?
+    @State private var hovering = false
+
+    var body: some View {
+        ZStack {
+            Rectangle().fill(Color.clear)
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .fill(Color(nsColor: .separatorColor).opacity((hovering || dragStart != nil) ? 0.95 : 0.45))
+                .frame(width: 64, height: 4)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 14)
+        .contentShape(Rectangle())
+        .onHover { inside in
+            hovering = inside
+            if inside { NSCursor.resizeUpDown.push() } else { NSCursor.pop() }
+        }
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { gesture in
+                    if dragStart == nil { dragStart = value }
+                    guard let start = dragStart else { return }
+                    let delta = gesture.translation.height * (invert ? -1 : 1)
+                    value = min(range.upperBound, max(range.lowerBound, start + delta))
+                }
+                .onEnded { _ in dragStart = nil }
+        )
+        .help(help)
+    }
+}
+
 extension View {
     func card(padding: CGFloat = 12) -> some View { modifier(CardStyle(padding: padding)) }
 }
