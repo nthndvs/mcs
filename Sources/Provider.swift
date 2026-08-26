@@ -32,32 +32,39 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
     var modelOptions: [String] {
         switch self {
         case .codex:
-            return ["Default", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.4", "gpt-5.3-codex"]
+            // gpt-5.4 retired July 23, 2026; gpt-5.3-codex-spark is the
+            // real-time coding variant. Catalog re-checked August 26, 2026.
+            return ["Default", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"]
         case .claude:
             // `opus` follows Claude Code's latest Opus alias, while the explicit
             // IDs make it possible to pin a comparison to a released generation.
-            // claude-fable-5 is Anthropic's Mythos-class flagship (GA July 1,
-            // 2026, at 2x Opus pricing); claude-opus-5 is the current Opus.
-            return ["Default", "opus", "sonnet", "haiku", "claude-fable-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-opus-4-6", "claude-sonnet-4-6", "claude-sonnet-4-5"]
+            // claude-fable-5 is Anthropic's Mythos-class flagship (restored to GA
+            // July 1, 2026); claude-opus-5 is the current Opus. claude-opus-4-6
+            // was deprecated June 15, 2026 and has been removed.
+            return ["Default", "opus", "sonnet", "haiku", "claude-fable-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"]
         case .grok:
             // Read from the installed Grok CLI's authenticated model catalog on
             // August 12, 2026. Older Grok 4.3 and the harness name are not model
             // IDs and resulted in unnecessary request failures.
             return ["Default", "grok-4.6", "grok-4.5"]
         case .glm:
-            // GLM-5.3 (August 14, 2026) is the current flagship on the GLM
-            // Coding Plan; reasoning effort ladder is low / high / max.
-            return ["Default", "glm-5.3", "glm-5.2", "glm-5-turbo", "glm-4.7", "glm-4.5-air"]
+            // Verified against the live Z.AI model API on August 26, 2026:
+            // glm-5.3-flash shipped alongside glm-5.3 (August 14, 2026), and
+            // glm-5.1 fills the mid-generation slot. Reasoning effort ladder
+            // is low / high / max.
+            return ["Default", "glm-5.3", "glm-5.3-flash", "glm-5.2", "glm-5.1", "glm-5-turbo", "glm-4.7", "glm-4.5-air"]
         case .kimi:
             // Kimi Code's OAuth-managed CLI models are addressed by aliases from
             // its refreshed local catalog. `kimi-code/k3` is the Kimi K3 alias;
             // the two K2.7 entries remain available for compatibility and speed.
             return ["Default", "kimi-code/k3", "kimi-code/k3-256k", "kimi-code/kimi-for-coding", "kimi-code/kimi-for-coding-highspeed"]
         case .qwen:
-            // Qwen Code's ModelStudio catalog. `qwen3.8-max` went GA on
-            // August 3, 2026; the preview ID remains for token-plan accounts
-            // pinned to it. The field stays editable for account-specific IDs.
-            return ["Default", "qwen3.8-max", "qwen3.8-max-preview", "qwen3-max", "qwen3-max-preview", "qwen3-max-2026-01-23", "qwen3.7-plus", "qwen3.6-plus", "qwen3.5-plus", "qwen3-coder-plus", "qwen3-coder-next"]
+            // Qwen Code's ModelStudio catalog, re-read from the CLI settings on
+            // August 26, 2026 (adding qwen3.7-max and qwen3.6-flash).
+            // `qwen3.8-max` went GA on August 3, 2026; the preview ID remains
+            // for token-plan accounts pinned to it. The field stays editable
+            // for account-specific IDs.
+            return ["Default", "qwen3.8-max", "qwen3.8-max-preview", "qwen3.7-max", "qwen3-max", "qwen3-max-preview", "qwen3-max-2026-01-23", "qwen3.7-plus", "qwen3.6-plus", "qwen3.6-flash", "qwen3.5-plus", "qwen3-coder-plus", "qwen3-coder-next"]
         case .google:
             // Antigravity exposes the models available to the signed-in Google
             // account through `agy models` (catalog re-read August 18, 2026,
@@ -77,7 +84,8 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
             // it carries different data-use terms from the standard model.
             return ["Default", "muse-spark-1.2-contributor", "muse-spark-1.2", "muse-spark-1.1"]
         case .deepseek:
-            return ["Default", "deepseek-v4-pro", "deepseek-v4-flash"]
+            // Verified against the live DeepSeek models API on August 26, 2026.
+            return ["Default", "deepseek-v4-pro", "deepseek-v4-flash", "deepseek-v4-flash-vision-exp"]
         }
     }
 
