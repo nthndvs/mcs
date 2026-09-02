@@ -1,0 +1,50 @@
+name: build-windows
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "win-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: windows/app/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build engine executable (PyInstaller)
+        working-directory: windows
+        run: |
+          pip install pyinstaller
+          pyinstaller --onefile --name model_compare --distpath engine/dist engine/model_compare.py
+
+      - name: Install frontend dependencies
+        working-directory: windows/app
+        run: npm ci --no-audit --no-fund
+
+      - name: Build Tauri app (NSIS + MSI)
+        uses: tauri-apps/tauri-action@v0
+        with:
+          projectPath: windows/app
+          tagName: win-v__VERSION__
+          releaseName: "Model Compare Studio for Windows v__VERSION__"
+          releaseDraft: true
+          prerelease: false
+          args: --config tauri.windows.conf.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
