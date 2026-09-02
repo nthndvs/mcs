@@ -67,14 +67,15 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
             return ["Default", "qwen3.8-max", "qwen3.8-max-preview", "qwen3.7-max", "qwen3-max", "qwen3-max-preview", "qwen3-max-2026-01-23", "qwen3.7-plus", "qwen3.6-plus", "qwen3.6-flash", "qwen3.5-plus", "qwen3-coder-plus", "qwen3-coder-next"]
         case .google:
             // Antigravity exposes the models available to the signed-in Google
-            // account through `agy models` (catalog re-read August 18, 2026,
-            // adding the Gemini 3.7 Flash line released August 13). The field
-            // remains editable for account-specific additions and releases.
+            // account through `agy models` (catalog re-read September 2, 2026,
+            // adding the Gemini 3.8 Flash line and dropping the retired 3.5
+            // Flash line). The field remains editable for account-specific
+            // additions and releases.
             return [
                 "Default",
+                "gemini-3.8-flash-high", "gemini-3.8-flash-medium", "gemini-3.8-flash-low",
                 "gemini-3.7-flash-high", "gemini-3.7-flash-medium", "gemini-3.7-flash-low",
                 "gemini-3.6-flash-high", "gemini-3.6-flash-medium", "gemini-3.6-flash-low",
-                "gemini-3.5-flash-high", "gemini-3.5-flash-medium", "gemini-3.5-flash-low",
                 "gemini-3.1-pro-high", "gemini-3.1-pro-low",
                 "claude-sonnet-4-6", "claude-opus-4-6-thinking", "gpt-oss-120b-medium",
             ]
@@ -82,7 +83,9 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
             // Meta Model API uses a direct API key rather than a consumer Meta AI
             // subscription or a local CLI. Contributor is deliberately opt-in:
             // it carries different data-use terms from the standard model.
-            return ["Default", "muse-spark-1.2-contributor", "muse-spark-1.2", "muse-spark-1.1"]
+            // Catalog verified against the live models API on September 2, 2026
+            // (muse-spark-1.3 line added).
+            return ["Default", "muse-spark-1.3-contributor", "muse-spark-1.3", "muse-spark-1.2-contributor", "muse-spark-1.2", "muse-spark-1.1"]
         case .deepseek:
             // Verified against the live DeepSeek models API on August 26, 2026.
             return ["Default", "deepseek-v4-pro", "deepseek-v4-flash", "deepseek-v4-flash-vision-exp"]
@@ -164,7 +167,7 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
 
     var modelFieldNote: String {
         self == .meta
-            ? "Choose a listed model or type an account-specific model ID. Contributor pricing requires muse-spark-1.2-contributor and allows Meta to use prompts and outputs to improve its models."
+            ? "Choose a listed model or type an account-specific model ID. Contributor pricing requires a -contributor model (e.g. muse-spark-1.3-contributor) and allows Meta to use prompts and outputs to improve its models."
             : "Choose a listed model or type an account-specific model ID."
     }
 }

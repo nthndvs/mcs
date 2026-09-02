@@ -235,8 +235,8 @@ final class AppState: ObservableObject {
             providerSettings[provider]?.included = false
         }
         let preset: [(ProviderID, String, String)] = [
-            (.meta, "muse-spark-1.2-contributor", "high"),
-            (.google, "gemini-3.7-flash-high", "high"),
+            (.meta, "muse-spark-1.3-contributor", "high"),
+            (.google, "gemini-3.8-flash-high", "high"),
             (.deepseek, "deepseek-v4-flash", "high"),
             (.grok, "grok-4.6", "high"),
         ]
@@ -247,7 +247,7 @@ final class AppState: ObservableObject {
         summaryModel = "gpt-5.6-luna"
         summaryEffort = "high"
         persistAllPreferences()
-        statusText = "Fast Mode: Meta 1.2 Contributor, Gemini 3.7 Flash, DeepSeek V4 Flash, Grok 4.6 (all High) — GPT-5.6 Luna High synthesizes."
+        statusText = "Fast Mode: Meta 1.3 Contributor, Gemini 3.8 Flash, DeepSeek V4 Flash, Grok 4.6 (all High) — GPT-5.6 Luna High synthesizes."
     }
 
     /// Saves the current provider and synthesis settings as a named preset.
