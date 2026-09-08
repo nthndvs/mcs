@@ -32,16 +32,17 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
     var modelOptions: [String] {
         switch self {
         case .codex:
-            // gpt-5.4 retired July 23, 2026; gpt-5.3-codex-spark is the
-            // real-time coding variant. Catalog re-checked August 26, 2026.
-            return ["Default", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"]
+            // gpt-6-astra shipped September 3, 2026 (GA September 4) and is the
+            // bundled default on Codex CLI v0.153.1+. gpt-5.4 retired July 23,
+            // 2026. Catalog re-checked September 8, 2026.
+            return ["Default", "gpt-6-astra", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"]
         case .claude:
             // `opus` follows Claude Code's latest Opus alias, while the explicit
             // IDs make it possible to pin a comparison to a released generation.
-            // claude-fable-5 is Anthropic's Mythos-class flagship (restored to GA
-            // July 1, 2026); claude-opus-5 is the current Opus. claude-opus-4-6
-            // was deprecated June 15, 2026 and has been removed.
-            return ["Default", "opus", "sonnet", "haiku", "claude-fable-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"]
+            // claude-fable-5-1 shipped September 1, 2026 as the Mythos-class
+            // flagship (Fable 5 remains available). claude-opus-4-6 was
+            // deprecated June 15, 2026 and has been removed.
+            return ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"]
         case .grok:
             // Read from the installed Grok CLI's authenticated model catalog on
             // August 12, 2026. Older Grok 4.3 and the harness name are not model

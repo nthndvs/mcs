@@ -18,14 +18,14 @@ export const PROVIDERS: ProviderSpec[] = [
   {
     id: "codex",
     name: "Codex",
-    models: ["Default", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"],
+    models: ["Default", "gpt-6-astra", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"],
     efforts: ["Default", "low", "medium", "high", "xhigh"],
     directAPI: false,
   },
   {
     id: "claude",
     name: "Claude",
-    models: ["Default", "opus", "sonnet", "haiku", "claude-fable-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"],
+    models: ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"],
     efforts: ["Default", "low", "medium", "high", "xhigh", "max"],
     directAPI: false,
   },
