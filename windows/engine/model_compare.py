@@ -306,6 +306,20 @@ def _extract_responses_text(parsed: dict):
     return text.strip() or None
 
 
+# Answers with these phrases and zero web_search_call items mean the model
+# accepted the web_search tool but never used it (deepseek-flash / V4.1 Flash
+# behaves this way, verified against the live API on September 10, 2026).
+_NO_ACCESS_RE = re.compile(
+    r"(don['’]?t|do not) have (any )?(live )?(web[- ]?search|web|internet)[ -]?(tools|access|capability)"
+    r"|no (live )?(web[- ]?search|web|internet)[ -]?(tools|access|capability)"
+    r"|(web[- ]?search|internet|web) (tools?|access) (is |are )?(not|un)available"
+    r"|can['’]?t browse|cannot browse|unable to browse"
+    r"|can['’]?t access the (internet|web)|cannot access the (internet|web)"
+    r"|no access to the (internet|web)",
+    re.IGNORECASE,
+)
+
+
 def invoke_responses_api(key: str, model: str, effort, prompt: str, results_dir: Path):
     """Call the OpenAI-style Responses API with native web_search enabled.
 
@@ -336,6 +350,18 @@ def invoke_responses_api(key: str, model: str, effort, prompt: str, results_dir:
     text = _extract_responses_text(parsed)
     if not text:
         return None, "no text in responses API payload"
+    searched = any(
+        isinstance(item, dict) and item.get("type") == "web_search_call"
+        for item in parsed.get("output") or []
+    )
+    if not searched and _NO_ACCESS_RE.search(text):
+        # Model disclaimed web access without searching: treat as a native
+        # search failure so the caller falls back to the Tavily-brief chat
+        # path instead of presenting an ungrounded answer.
+        return None, (
+            f"{model} accepted but did not use the web_search tool "
+            "(model disclaimed web access)"
+        )
     return text, None
 
 

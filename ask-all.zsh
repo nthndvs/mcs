@@ -620,6 +620,24 @@ invoke_responses_api() {
     print -r -- "FAILED: The API returned no text response. See ${key}.raw.json for diagnostics."
     return 1
   fi
+
+  # deepseek-flash (V4.1 Flash) currently accepts the web_search tool but never
+  # invokes it, answering with a no-access disclaimer instead (verified against
+  # the live API on September 10, 2026). Treat that as a native-search failure
+  # so the caller falls back to the Tavily-brief chat path rather than
+  # presenting an ungrounded answer that falsely claims it cannot search.
+  local search_call_count
+  search_call_count=$(jq -r '[.output[]? | select(.type == "web_search_call")] | length' "$raw_response" 2>/dev/null)
+  if [[ ${search_call_count:-0} == 0 ]] && print -r -- "$answer" | grep -qiE \
+    -e "(don['’]?t|do not) have (any )?(live )?(web[- ]?search|web|internet)[ -]?(tools|access|capability)" \
+    -e "no (live )?(web[- ]?search|web|internet)[ -]?(tools|access|capability)" \
+    -e "(web[- ]?search|internet|web) (tools?|access) (is |are )?(not|un)available" \
+    -e "can['’]?t browse|cannot browse|unable to browse" \
+    -e "can['’]?t access the (internet|web)|cannot access the (internet|web)" \
+    -e "no access to the (internet|web)"; then
+    print -r -- "FAILED: $model accepted but did not use the web_search tool (model disclaimed web access). Falling back."
+    return 1
+  fi
   print -r -- "$answer"
   jq -r '
     ([.output[]? | select(.type == "message") | .content[]? | select(.type == "output_text") | .annotations[]? | select(.type == "url_citation") | .url] | unique) as $citations
