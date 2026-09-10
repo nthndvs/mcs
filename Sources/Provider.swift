@@ -88,8 +88,12 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
             // (muse-spark-1.3 line added).
             return ["Default", "muse-spark-1.3-contributor", "muse-spark-1.3", "muse-spark-1.2-contributor", "muse-spark-1.2", "muse-spark-1.1"]
         case .deepseek:
-            // Verified against the live DeepSeek models API on August 26, 2026.
-            return ["Default", "deepseek-v4-pro", "deepseek-v4-flash", "deepseek-v4-flash-vision-exp"]
+            // Verified against the live DeepSeek models API on September 10,
+            // 2026: V4.1 Flash launched and is served as `deepseek-flash`
+            // (legacy `deepseek-v4-flash` requests are routed to it, and
+            // `deepseek-v4-flash-vision-exp` is gone). Until V4.1 Pro ships,
+            // `deepseek-v4-pro` requests also route to V4.1 Flash.
+            return ["Default", "deepseek-flash", "deepseek-v4-pro"]
         }
     }
 

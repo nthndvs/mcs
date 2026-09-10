@@ -237,7 +237,7 @@ final class AppState: ObservableObject {
         let preset: [(ProviderID, String, String)] = [
             (.meta, "muse-spark-1.3-contributor", "high"),
             (.google, "gemini-3.8-flash-high", "high"),
-            (.deepseek, "deepseek-v4-flash", "high"),
+            (.deepseek, "deepseek-flash", "high"),
             (.grok, "grok-4.6", "high"),
         ]
         for (provider, model, effort) in preset {

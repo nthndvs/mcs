@@ -2,7 +2,7 @@
 
 [package]
 name = "model-compare-studio"
-version = "1.4.3"
+version = "1.4.4"
 description = "Model Compare Studio — prompt multiple LLM providers at once"
 edition = "2021"
 

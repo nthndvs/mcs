@@ -83,7 +83,7 @@ export const PROVIDERS: ProviderSpec[] = [
   {
     id: "deepseek",
     name: "DeepSeek",
-    models: ["Default", "deepseek-v4-pro", "deepseek-v4-flash", "deepseek-v4-flash-vision-exp"],
+    models: ["Default", "deepseek-flash", "deepseek-v4-pro"],
     efforts: ["Default", "high", "max"],
     directAPI: true,
   },
@@ -143,7 +143,7 @@ export function applyFastMode(s: Settings): Settings {
   }
   next.providers.meta = { include: true, model: "muse-spark-1.3-contributor", effort: "high" };
   next.providers.google = { include: true, model: "gemini-3.8-flash-high", effort: "high" };
-  next.providers.deepseek = { include: true, model: "deepseek-v4-flash", effort: "high" };
+  next.providers.deepseek = { include: true, model: "deepseek-flash", effort: "high" };
   next.providers.grok = { include: true, model: "grok-4.6", effort: "high" };
   next.summaryProvider = "codex";
   next.summaryModel = "gpt-5.6-luna";
