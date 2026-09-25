@@ -18,28 +18,28 @@ export const PROVIDERS: ProviderSpec[] = [
   {
     id: "codex",
     name: "Codex",
-    models: ["Default", "gpt-6-astra", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"],
+    models: ["Default", "gpt-6-astra", "gpt-6-sol", "gpt-6-luna", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"],
     efforts: ["Default", "low", "medium", "high", "xhigh"],
     directAPI: false,
   },
   {
     id: "claude",
     name: "Claude",
-    models: ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"],
+    models: ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"],
     efforts: ["Default", "low", "medium", "high", "xhigh", "max"],
     directAPI: false,
   },
   {
     id: "grok",
     name: "Grok",
-    models: ["Default", "grok-4.6", "grok-4.5"],
+    models: ["Default", "grok-4.7", "grok-4.7-build-fast", "grok-4.6", "grok-4.5"],
     efforts: ["Default", "low", "medium", "high"],
     directAPI: false,
   },
   {
     id: "glm",
     name: "GLM",
-    models: ["Default", "glm-5.3", "glm-5.3-flash", "glm-5.2", "glm-5.1", "glm-5-turbo", "glm-4.7", "glm-4.5-air"],
+    models: ["Default", "glm-5.3", "glm-5.3-flash", "glm-5.3-flashx", "glm-5.2", "glm-5.1", "glm-5-turbo", "glm-4.7", "glm-4.5-air"],
     efforts: ["Default", "low", "medium", "high", "xhigh", "max"],
     directAPI: false,
   },
@@ -144,7 +144,7 @@ export function applyFastMode(s: Settings): Settings {
   next.providers.meta = { include: true, model: "muse-spark-1.3-contributor", effort: "high" };
   next.providers.google = { include: true, model: "gemini-3.8-flash-high", effort: "high" };
   next.providers.deepseek = { include: true, model: "deepseek-flash", effort: "high" };
-  next.providers.grok = { include: true, model: "grok-4.6", effort: "high" };
+  next.providers.grok = { include: true, model: "grok-4.7", effort: "high" };
   next.summaryProvider = "codex";
   next.summaryModel = "gpt-5.6-luna";
   next.summaryEffort = "high";

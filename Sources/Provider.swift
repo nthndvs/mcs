@@ -32,28 +32,28 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
     var modelOptions: [String] {
         switch self {
         case .codex:
-            // gpt-6-astra shipped September 3, 2026 (GA September 4) and is the
-            // bundled default on Codex CLI v0.153.1+. gpt-5.4 retired July 23,
-            // 2026. Catalog re-checked September 8, 2026.
-            return ["Default", "gpt-6-astra", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"]
+            // gpt-6-sol and gpt-6-luna shipped September 22, 2026 (GA) for
+            // Codex/ChatGPT Work; availability depends on plan and rollout —
+            // this account runs gpt-6-astra but rejects gpt-6-sol as of
+            // September 25, 2026. Catalog re-checked September 25, 2026.
+            return ["Default", "gpt-6-astra", "gpt-6-sol", "gpt-6-luna", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"]
         case .claude:
             // `opus` follows Claude Code's latest Opus alias, while the explicit
             // IDs make it possible to pin a comparison to a released generation.
-            // claude-fable-5-1 shipped September 1, 2026 as the Mythos-class
-            // flagship (Fable 5 remains available). claude-opus-4-6 was
-            // deprecated June 15, 2026 and has been removed.
-            return ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"]
+            // claude-opus-5-5 shipped September 22, 2026 (requires Claude Code
+            // 2.1.280+). claude-fable-5-1 is the Mythos-class flagship.
+            // claude-opus-4-6 was deprecated June 15, 2026 and has been removed.
+            return ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"]
         case .grok:
             // Read from the installed Grok CLI's authenticated model catalog on
-            // August 12, 2026. Older Grok 4.3 and the harness name are not model
-            // IDs and resulted in unnecessary request failures.
-            return ["Default", "grok-4.6", "grok-4.5"]
+            // September 25, 2026: grok-4.7 is the new default, with a
+            // grok-4.7-build-fast variant alongside 4.6 and 4.5.
+            return ["Default", "grok-4.7", "grok-4.7-build-fast", "grok-4.6", "grok-4.5"]
         case .glm:
-            // Verified against the live Z.AI model API on August 26, 2026:
-            // glm-5.3-flash shipped alongside glm-5.3 (August 14, 2026), and
-            // glm-5.1 fills the mid-generation slot. Reasoning effort ladder
-            // is low / high / max.
-            return ["Default", "glm-5.3", "glm-5.3-flash", "glm-5.2", "glm-5.1", "glm-5-turbo", "glm-4.7", "glm-4.5-air"]
+            // Verified against the live Z.AI model API on September 25, 2026:
+            // glm-5.3-flashx joined glm-5.3-flash. Reasoning effort ladder is
+            // low / high / max.
+            return ["Default", "glm-5.3", "glm-5.3-flash", "glm-5.3-flashx", "glm-5.2", "glm-5.1", "glm-5-turbo", "glm-4.7", "glm-4.5-air"]
         case .kimi:
             // Kimi Code's OAuth-managed CLI models are addressed by aliases from
             // its refreshed local catalog. `kimi-code/k3` is the Kimi K3 alias;
@@ -84,8 +84,9 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
             // Meta Model API uses a direct API key rather than a consumer Meta AI
             // subscription or a local CLI. Contributor is deliberately opt-in:
             // it carries different data-use terms from the standard model.
-            // Catalog verified against the live models API on September 2, 2026
-            // (muse-spark-1.3 line added).
+            // Catalog verified against the live models API on September 25, 2026.
+            // sam-3.1 (Segment Anything 3) is listed by the API but requires
+            // image/video input, so it is excluded from this text comparison.
             return ["Default", "muse-spark-1.3-contributor", "muse-spark-1.3", "muse-spark-1.2-contributor", "muse-spark-1.2", "muse-spark-1.1"]
         case .deepseek:
             // Verified against the live DeepSeek models API on September 10,

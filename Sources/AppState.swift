@@ -238,7 +238,7 @@ final class AppState: ObservableObject {
             (.meta, "muse-spark-1.3-contributor", "high"),
             (.google, "gemini-3.8-flash-high", "high"),
             (.deepseek, "deepseek-flash", "high"),
-            (.grok, "grok-4.6", "high"),
+            (.grok, "grok-4.7", "high"),
         ]
         for (provider, model, effort) in preset {
             providerSettings[provider] = ProviderSettings(included: true, model: model, effort: effort)
