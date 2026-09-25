@@ -59,3 +59,15 @@ jobs:
             cat .github/release-install-notes.md >> "$notes"
             gh release edit "$tag" --notes-file "$notes"
           fi
+
+      # The in-app updater (UpdateService) reads releases/latest, and the
+      # "latest" marker follows the most recently published release — so a
+      # later win-v* release would steal it and hide macOS updates. Reclaim
+      # it explicitly every time a macOS release ships.
+      - name: Mark as latest release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${{ steps.release.outputs.tag }}"
+          id=$(gh api "repos/${{ github.repository }}/releases/tags/$tag" --jq .id)
+          gh api -X PATCH "repos/${{ github.repository }}/releases/$id" -f make_latest=true

@@ -27,7 +27,10 @@ struct UpdateAlert: Identifiable, Equatable {
 /// are rate-limited but more than sufficient for a launch-time check; no
 /// credentials are stored in the app.
 enum UpdateService {
-    private static let latestReleaseURL = URL(string: "https://api.github.com/repos/nthndvs/mcs/releases/latest")!
+    // The releases list is used instead of /releases/latest because the
+    // Windows port publishes win-v* tags in the same repository, and GitHub's
+    // "latest" marker simply follows the most recently published release.
+    private static let releasesURL = URL(string: "https://api.github.com/repos/nthndvs/mcs/releases?per_page=15")!
 
     static var currentVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
@@ -36,21 +39,29 @@ enum UpdateService {
     /// Returns the update when one is available, nil when up to date, or an
     /// error explaining why the check could not be completed.
     static func checkForUpdate() async -> Result<UpdateInfo?, UpdateCheckError> {
-        var request = URLRequest(url: latestReleaseURL)
+        var request = URLRequest(url: releasesURL)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.timeoutInterval = 10
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let http = response as? HTTPURLResponse, http.statusCode == 200,
-                  let object = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let tag = object["tag_name"] as? String,
-                  let page = object["html_url"] as? String,
-                  let releaseURL = URL(string: page) else {
+                  let releases = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
                 return .failure(.noReleaseFound)
             }
-            let latest = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
-            guard isVersion(latest, newerThan: currentVersion) else { return .success(nil) }
-            return .success(UpdateInfo(version: latest, releaseURL: releaseURL))
+            // Releases arrive newest-first. Only plain vX.Y.Z tags are macOS
+            // releases; win-v* and any other tag shapes are skipped.
+            for release in releases {
+                guard let draft = release["draft"] as? Bool, !draft,
+                      let prerelease = release["prerelease"] as? Bool, !prerelease,
+                      let tag = release["tag_name"] as? String,
+                      let page = release["html_url"] as? String,
+                      let releaseURL = URL(string: page) else { continue }
+                let version = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
+                guard version.first?.isNumber == true else { continue }
+                guard isVersion(version, newerThan: currentVersion) else { return .success(nil) }
+                return .success(UpdateInfo(version: version, releaseURL: releaseURL))
+            }
+            return .failure(.noReleaseFound)
         } catch {
             return .failure(.unreachable)
         }
