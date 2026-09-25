@@ -48,3 +48,8 @@ jobs:
           args: --config tauri.windows.conf.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # IMPORTANT: when publishing this draft, use
+      #   gh release edit win-vX.Y.Z --draft=false --latest=false
+      # Publishing without --latest=false steals the repo's "latest" marker,
+      # which the macOS in-app updater (≤ v1.4.6) reads to find updates.
