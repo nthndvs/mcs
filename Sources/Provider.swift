@@ -33,17 +33,20 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
         switch self {
         case .codex:
             // gpt-6-sol and gpt-6-luna shipped September 22, 2026 (GA) for
-            // Codex/ChatGPT Work; availability depends on plan and rollout —
-            // this account runs gpt-6-astra but rejects gpt-6-sol as of
-            // September 25, 2026. Catalog re-checked September 25, 2026.
+            // Codex/ChatGPT Work; availability depends on plan and rollout.
+            // Verified working on this account October 1, 2026 (both gpt-6-sol
+            // and gpt-6-luna respond via codex-cli 0.159.3). Catalog re-checked
+            // October 1, 2026.
             return ["Default", "gpt-6-astra", "gpt-6-sol", "gpt-6-luna", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"]
         case .claude:
             // `opus` follows Claude Code's latest Opus alias, while the explicit
             // IDs make it possible to pin a comparison to a released generation.
             // claude-opus-5-5 shipped September 22, 2026 (requires Claude Code
             // 2.1.280+). claude-fable-5-1 is the Mythos-class flagship.
+            // claude-sonnet-5-5 and claude-haiku-4-5 confirmed live via the
+            // CLI's model list on October 1, 2026 (Claude Code 2.1.286).
             // claude-opus-4-6 was deprecated June 15, 2026 and has been removed.
-            return ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"]
+            return ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5-5", "claude-sonnet-5", "claude-haiku-4-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"]
         case .grok:
             // Read from the installed Grok CLI's authenticated model catalog on
             // September 25, 2026: grok-4.7 is the new default, with a
@@ -63,9 +66,11 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
             // Qwen Code's ModelStudio catalog, re-read from the CLI settings on
             // August 26, 2026 (adding qwen3.7-max and qwen3.6-flash).
             // `qwen3.8-max` went GA on August 3, 2026; the preview ID remains
-            // for token-plan accounts pinned to it. The field stays editable
-            // for account-specific IDs.
-            return ["Default", "qwen3.8-max", "qwen3.8-max-preview", "qwen3.7-max", "qwen3-max", "qwen3-max-preview", "qwen3-max-2026-01-23", "qwen3.7-plus", "qwen3.6-plus", "qwen3.6-flash", "qwen3.5-plus", "qwen3-coder-plus", "qwen3-coder-next"]
+            // for token-plan accounts pinned to it. Cross-checked against the
+            // Alibaba Cloud model release list on October 1, 2026, adding
+            // qwen3.8-flash (August 26) and the qwen3.8-max-0902 snapshot
+            // (September 2). The field stays editable for account-specific IDs.
+            return ["Default", "qwen3.8-max", "qwen3.8-max-0902", "qwen3.8-max-preview", "qwen3.8-flash", "qwen3.7-max", "qwen3-max", "qwen3-max-preview", "qwen3-max-2026-01-23", "qwen3.7-plus", "qwen3.6-plus", "qwen3.6-flash", "qwen3.5-plus", "qwen3-coder-plus", "qwen3-coder-next"]
         case .google:
             // Antigravity exposes the models available to the signed-in Google
             // account through `agy models` (catalog re-read September 2, 2026,
@@ -140,7 +145,11 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
     var cliCandidatePaths: [String] {
         let home = NSHomeDirectory()
         switch self {
-        case .codex: return ["/Applications/ChatGPT.app/Contents/Resources/codex"]
+        case .codex:
+            // Prefer the standalone installer copy (~/.local/bin/codex), which
+            // tracks the latest codex-cli release; the ChatGPT.app bundle lags
+            // behind it (0.159.3 vs 0.153.4 on October 1, 2026).
+            return ["\(home)/.local/bin/codex", "/Applications/ChatGPT.app/Contents/Resources/codex"]
         case .grok: return ["\(home)/.grok/bin/grok"]
         case .kimi: return ["\(home)/.kimi-code/bin/kimi"]
         case .qwen: return ["\(home)/.qwen/bin/qwen"]

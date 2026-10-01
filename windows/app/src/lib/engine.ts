@@ -25,7 +25,7 @@ export const PROVIDERS: ProviderSpec[] = [
   {
     id: "claude",
     name: "Claude",
-    models: ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"],
+    models: ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5-5", "claude-sonnet-5", "claude-haiku-4-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"],
     efforts: ["Default", "low", "medium", "high", "xhigh", "max"],
     directAPI: false,
   },
@@ -54,7 +54,7 @@ export const PROVIDERS: ProviderSpec[] = [
   {
     id: "qwen",
     name: "Qwen",
-    models: ["Default", "qwen3.8-max", "qwen3.8-max-preview", "qwen3.7-max", "qwen3-max", "qwen3-max-preview", "qwen3-max-2026-01-23", "qwen3.7-plus", "qwen3.6-plus", "qwen3.6-flash", "qwen3.5-plus", "qwen3-coder-plus", "qwen3-coder-next"],
+    models: ["Default", "qwen3.8-max", "qwen3.8-max-0902", "qwen3.8-max-preview", "qwen3.8-flash", "qwen3.7-max", "qwen3-max", "qwen3-max-preview", "qwen3-max-2026-01-23", "qwen3.7-plus", "qwen3.6-plus", "qwen3.6-flash", "qwen3.5-plus", "qwen3-coder-plus", "qwen3-coder-next"],
     efforts: ["Default"],
     directAPI: false,
     effortNote: "Qwen Code stores reasoning effort in its own CLI settings.",
@@ -146,7 +146,7 @@ export function applyFastMode(s: Settings): Settings {
   next.providers.deepseek = { include: true, model: "deepseek-flash", effort: "high" };
   next.providers.grok = { include: true, model: "grok-4.7", effort: "high" };
   next.summaryProvider = "codex";
-  next.summaryModel = "gpt-5.6-luna";
+  next.summaryModel = "gpt-6-luna";
   next.summaryEffort = "high";
   return next;
 }

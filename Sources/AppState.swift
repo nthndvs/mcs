@@ -228,7 +228,7 @@ final class AppState: ObservableObject {
         statusText = included ? "All providers included." : "All providers excluded."
     }
 
-    /// Fast Mode: four quick models at high effort, with GPT-5.6 Luna
+    /// Fast Mode: four quick models at high effort, with GPT-6 Luna
     /// synthesizing. Everything else is excluded.
     func applyFastMode() {
         for provider in ProviderID.allCases {
@@ -244,10 +244,10 @@ final class AppState: ObservableObject {
             providerSettings[provider] = ProviderSettings(included: true, model: model, effort: effort)
         }
         summaryProviderChanged(to: ProviderID.codex.rawValue)
-        summaryModel = "gpt-5.6-luna"
+        summaryModel = "gpt-6-luna"
         summaryEffort = "high"
         persistAllPreferences()
-        statusText = "Fast Mode: Meta 1.3 Contributor, Gemini 3.8 Flash, DeepSeek V4 Flash, Grok 4.6 (all High) — GPT-5.6 Luna High synthesizes."
+        statusText = "Fast Mode: Meta 1.3 Contributor, Gemini 3.8 Flash, DeepSeek V4 Flash, Grok 4.7 (all High) — GPT-6 Luna High synthesizes."
     }
 
     /// Saves the current provider and synthesis settings as a named preset.
