@@ -32,12 +32,11 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
     var modelOptions: [String] {
         switch self {
         case .codex:
-            // gpt-6-sol and gpt-6-luna shipped September 22, 2026 (GA) for
-            // Codex/ChatGPT Work; availability depends on plan and rollout.
-            // Verified working on this account October 1, 2026 (both gpt-6-sol
-            // and gpt-6-luna respond via codex-cli 0.159.3). Catalog re-checked
-            // October 1, 2026.
-            return ["Default", "gpt-6-astra", "gpt-6-sol", "gpt-6-luna", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"]
+            // gpt-6.1-sol shipped September 29, 2026 (the 6.1 line is Sol-only;
+            // GPT-6.1 Astra was scrapped) and is verified working on this
+            // account via codex-cli 0.163.0 on October 19, 2026. The gpt-6
+            // family (astra/sol/luna) also verified live October 1, 2026.
+            return ["Default", "gpt-6.1-sol", "gpt-6-astra", "gpt-6-sol", "gpt-6-luna", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"]
         case .claude:
             // `opus` follows Claude Code's latest Opus alias, while the explicit
             // IDs make it possible to pin a comparison to a released generation.
@@ -45,8 +44,9 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
             // 2.1.280+). claude-fable-5-1 is the Mythos-class flagship.
             // claude-sonnet-5-5 and claude-haiku-4-5 confirmed live via the
             // CLI's model list on October 1, 2026 (Claude Code 2.1.286).
+            // claude-haiku-5-5 shipped October 7, 2026.
             // claude-opus-4-6 was deprecated June 15, 2026 and has been removed.
-            return ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5-5", "claude-sonnet-5", "claude-haiku-4-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"]
+            return ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5-5", "claude-sonnet-5", "claude-haiku-5-5", "claude-haiku-4-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"]
         case .grok:
             // Read from the installed Grok CLI's authenticated model catalog on
             // September 25, 2026: grok-4.7 is the new default, with a
@@ -73,26 +73,31 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
             return ["Default", "qwen3.8-max", "qwen3.8-max-0902", "qwen3.8-max-preview", "qwen3.8-flash", "qwen3.7-max", "qwen3-max", "qwen3-max-preview", "qwen3-max-2026-01-23", "qwen3.7-plus", "qwen3.6-plus", "qwen3.6-flash", "qwen3.5-plus", "qwen3-coder-plus", "qwen3-coder-next"]
         case .google:
             // Antigravity exposes the models available to the signed-in Google
-            // account through `agy models` (catalog re-read September 2, 2026,
-            // adding the Gemini 3.8 Flash line and dropping the retired 3.5
-            // Flash line). The field remains editable for account-specific
-            // additions and releases.
+            // account through `agy models`. Catalog re-read October 19, 2026
+            // (agy 1.4.2): Gemini 4 Argon (GA October 13) headlines, the
+            // Gemini 3.8 Flash line remains, and Antigravity now serves Claude
+            // Opus/Sonnet 5.5 with effort variants. The 3.7/3.6 Flash lines,
+            // 3.1 Pro, and the Claude 4.6 entries were dropped by Google
+            // (Enterprise-only or removed November 2, 2026).
             return [
                 "Default",
+                "gemini-4-argon-high", "gemini-4-argon-medium", "gemini-4-argon-low",
                 "gemini-3.8-flash-high", "gemini-3.8-flash-medium", "gemini-3.8-flash-low",
-                "gemini-3.7-flash-high", "gemini-3.7-flash-medium", "gemini-3.7-flash-low",
-                "gemini-3.6-flash-high", "gemini-3.6-flash-medium", "gemini-3.6-flash-low",
-                "gemini-3.1-pro-high", "gemini-3.1-pro-low",
-                "claude-sonnet-4-6", "claude-opus-4-6-thinking", "gpt-oss-120b-medium",
+                "claude-opus-5-5-high", "claude-opus-5-5-medium", "claude-opus-5-5-low",
+                "claude-sonnet-5-5-high", "claude-sonnet-5-5-medium", "claude-sonnet-5-5-low",
+                "gpt-oss-120b-medium",
             ]
         case .meta:
             // Meta Model API uses a direct API key rather than a consumer Meta AI
             // subscription or a local CLI. Contributor is deliberately opt-in:
             // it carries different data-use terms from the standard model.
-            // Catalog verified against the live models API on September 25, 2026.
-            // sam-3.1 (Segment Anything 3) is listed by the API but requires
-            // image/video input, so it is excluded from this text comparison.
-            return ["Default", "muse-spark-1.3-contributor", "muse-spark-1.3", "muse-spark-1.2-contributor", "muse-spark-1.2", "muse-spark-1.1"]
+            // Catalog verified against the live models API on October 19, 2026:
+            // muse-wonder-1.0 (Meta's first frontier model, October 12, 2026)
+            // is now served. muse-wonder-full-1.0 is Muse Code subscription-only
+            // and not on the API. sam-3.1 (Segment Anything 3) is listed by the
+            // API but requires image/video input, so it is excluded from this
+            // text comparison.
+            return ["Default", "muse-wonder-1.0", "muse-spark-1.3-contributor", "muse-spark-1.3", "muse-spark-1.2-contributor", "muse-spark-1.2", "muse-spark-1.1"]
         case .deepseek:
             // Verified against the live DeepSeek models API on September 10,
             // 2026: V4.1 Flash launched and is served as `deepseek-flash`
