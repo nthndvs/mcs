@@ -53,10 +53,10 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
             // grok-4.7-build-fast variant alongside 4.6 and 4.5.
             return ["Default", "grok-4.7", "grok-4.7-build-fast", "grok-4.6", "grok-4.5"]
         case .glm:
-            // Verified against the live Z.AI model API on September 25, 2026:
-            // glm-5.3-flashx joined glm-5.3-flash. Reasoning effort ladder is
-            // low / high / max.
-            return ["Default", "glm-5.3", "glm-5.3-flash", "glm-5.3-flashx", "glm-5.2", "glm-5.1", "glm-5-turbo", "glm-4.7", "glm-4.5-air"]
+            // Verified against the live Z.AI model API on November 3, 2026:
+            // glm-5.3-flashx-legal joined glm-5.3-flashx (legal-domain variant).
+            // Reasoning effort ladder is low / high / max.
+            return ["Default", "glm-5.3", "glm-5.3-flash", "glm-5.3-flashx", "glm-5.3-flashx-legal", "glm-5.2", "glm-5.1", "glm-5-turbo", "glm-4.7", "glm-4.5-air"]
         case .kimi:
             // Kimi Code's OAuth-managed CLI models are addressed by aliases from
             // its refreshed local catalog. `kimi-code/k3` is the Kimi K3 alias;
@@ -153,8 +153,11 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable {
         case .codex:
             // Prefer the standalone installer copy (~/.local/bin/codex), which
             // tracks the latest codex-cli release; the ChatGPT.app bundle lags
-            // behind it (0.159.3 vs 0.153.4 on October 1, 2026).
-            return ["\(home)/.local/bin/codex", "/Applications/ChatGPT.app/Contents/Resources/codex"]
+            // behind it. A late-2026 ChatGPT.app update renamed the bundled
+            // binary from "codex" to "codex-cli" — check both.
+            return ["\(home)/.local/bin/codex",
+                    "/Applications/ChatGPT.app/Contents/Resources/codex-cli",
+                    "/Applications/ChatGPT.app/Contents/Resources/codex"]
         case .grok: return ["\(home)/.grok/bin/grok"]
         case .kimi: return ["\(home)/.kimi-code/bin/kimi"]
         case .qwen: return ["\(home)/.qwen/bin/qwen"]

@@ -39,7 +39,7 @@ export const PROVIDERS: ProviderSpec[] = [
   {
     id: "glm",
     name: "GLM",
-    models: ["Default", "glm-5.3", "glm-5.3-flash", "glm-5.3-flashx", "glm-5.2", "glm-5.1", "glm-5-turbo", "glm-4.7", "glm-4.5-air"],
+    models: ["Default", "glm-5.3", "glm-5.3-flash", "glm-5.3-flashx", "glm-5.3-flashx-legal", "glm-5.2", "glm-5.1", "glm-5-turbo", "glm-4.7", "glm-4.5-air"],
     efforts: ["Default", "low", "medium", "high", "xhigh", "max"],
     directAPI: false,
   },

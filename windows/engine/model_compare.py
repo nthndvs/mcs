@@ -117,6 +117,11 @@ def _candidate_paths(name: str):
         for d in dirs:
             candidates.append(d / name)
         if name == "codex":
+            # ChatGPT.app renamed the bundled CLI from "codex" to "codex-cli"
+            # in a late-2026 update; accept either.
+            candidates.append(
+                Path("/Applications/ChatGPT.app/Contents/Resources/codex-cli")
+            )
             candidates.append(
                 Path("/Applications/ChatGPT.app/Contents/Resources/codex")
             )

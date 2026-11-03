@@ -1854,7 +1854,7 @@ dependencies = [
 
 [[package]]
 name = "model-compare-studio"
-version = "1.4.2"
+version = "1.4.3"
 dependencies = [
  "keyring",
  "serde",

@@ -970,7 +970,12 @@ build_summary_prompt() {
   print -r -- "$summary"
 }
 
-codex_bin=${CODEX_BIN:-${commands[codex]:-}}
+codex_bin=${CODEX_BIN:-$(find_cli codex || true)}
+# ChatGPT.app bundled the CLI as "codex"; a late-2026 update renamed the
+# bundled binary to "codex-cli". Accept either, oldest name last.
+if [[ -z $codex_bin && -x /Applications/ChatGPT.app/Contents/Resources/codex-cli ]]; then
+  codex_bin=/Applications/ChatGPT.app/Contents/Resources/codex-cli
+fi
 if [[ -z $codex_bin && -x /Applications/ChatGPT.app/Contents/Resources/codex ]]; then
   codex_bin=/Applications/ChatGPT.app/Contents/Resources/codex
 fi
