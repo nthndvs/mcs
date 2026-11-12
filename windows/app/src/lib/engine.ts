@@ -18,14 +18,14 @@ export const PROVIDERS: ProviderSpec[] = [
   {
     id: "codex",
     name: "Codex",
-    models: ["Default", "gpt-6.1-sol", "gpt-6-astra", "gpt-6-sol", "gpt-6-luna", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"],
+    models: ["Default", "gpt-6.1-sol", "gpt-6.1-terra", "gpt-6-astra", "gpt-6-sol", "gpt-6-luna", "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.3-codex", "gpt-5.3-codex-spark"],
     efforts: ["Default", "low", "medium", "high", "xhigh"],
     directAPI: false,
   },
   {
     id: "claude",
     name: "Claude",
-    models: ["Default", "opus", "sonnet", "haiku", "claude-fable-5-1", "claude-fable-5", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5-5", "claude-sonnet-5", "claude-haiku-5-5", "claude-haiku-4-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"],
+    models: ["Default", "opus", "sonnet", "haiku", "claude-fable-5-2", "claude-fable-5-1", "claude-fable-5", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5-5", "claude-sonnet-5", "claude-haiku-5-5", "claude-haiku-4-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-sonnet-4-5"],
     efforts: ["Default", "low", "medium", "high", "xhigh", "max"],
     directAPI: false,
   },
@@ -54,7 +54,7 @@ export const PROVIDERS: ProviderSpec[] = [
   {
     id: "qwen",
     name: "Qwen",
-    models: ["Default", "qwen3.8-max", "qwen3.8-max-0902", "qwen3.8-max-preview", "qwen3.8-flash", "qwen3.7-max", "qwen3-max", "qwen3-max-preview", "qwen3-max-2026-01-23", "qwen3.7-plus", "qwen3.6-plus", "qwen3.6-flash", "qwen3.5-plus", "qwen3-coder-plus", "qwen3-coder-next"],
+    models: ["Default", "qwen4-max-preview", "qwen3.8-max", "qwen3.8-max-0902", "qwen3.8-max-preview", "qwen3.8-flash", "qwen3.7-max", "qwen3-max", "qwen3-max-preview", "qwen3-max-2026-01-23", "qwen3.7-plus", "qwen3.6-plus", "qwen3.6-flash", "qwen3.5-plus", "qwen3-coder-plus", "qwen3-coder-next"],
     efforts: ["Default"],
     directAPI: false,
     effortNote: "Qwen Code stores reasoning effort in its own CLI settings.",
@@ -64,6 +64,7 @@ export const PROVIDERS: ProviderSpec[] = [
     name: "Google",
     models: [
       "Default",
+      "gemini-4-hydrogen-xhigh", "gemini-4-hydrogen-high", "gemini-4-hydrogen-medium", "gemini-4-hydrogen-low",
       "gemini-4-argon-high", "gemini-4-argon-medium", "gemini-4-argon-low",
       "gemini-3.8-flash-high", "gemini-3.8-flash-medium", "gemini-3.8-flash-low",
       "claude-opus-5-5-high", "claude-opus-5-5-medium", "claude-opus-5-5-low",
@@ -76,7 +77,7 @@ export const PROVIDERS: ProviderSpec[] = [
   {
     id: "meta",
     name: "Meta",
-    models: ["Default", "muse-wonder-1.0", "muse-spark-1.3-contributor", "muse-spark-1.3", "muse-spark-1.2-contributor", "muse-spark-1.2", "muse-spark-1.1"],
+    models: ["Default", "muse-wonder-1.0", "muse-ember-1.0", "muse-spark-1.3-contributor", "muse-spark-1.3", "muse-spark-1.2-contributor", "muse-spark-1.2", "muse-spark-1.1"],
     efforts: ["Default", "low", "medium", "high", "xhigh"],
     directAPI: true,
   },
